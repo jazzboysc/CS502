@@ -23,6 +23,10 @@ typedef struct _MaxHeap
 //****************************************************************************
 #define HEAP_GET_KEY(heap, i) heap->buffer[i].key
 //****************************************************************************
+#define HEAP_GET_DATA(heap, i) heap->buffer[i].data
+//****************************************************************************
+#define HEAP_SET_DATA(heap, i, data) heap->buffer[i].data = data
+//****************************************************************************
 #define HEAP_SWAP(heap, i, j) \
     MaxHeapItem temp; \
     temp = heap->buffer[i]; \

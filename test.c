@@ -51,7 +51,7 @@
 #include         "stdlib.h"
 #include         "math.h"
 
-#include         "heap.h"
+#include         "priority_queue.h"
 
 INT16 Z502_PROGRAM_COUNTER;
 
@@ -77,7 +77,7 @@ void   GetRandomNumber( long *, long );
 void   GetSkewedRandomNumber( long *, long );
 void   Test2f_Statistics(int Pid);
 
-void test_heap() {
+void test_queue() {
     MaxHeapItem* items = malloc(sizeof(MaxHeapItem)* 6);
     items[1].key = 5;
     items[2].key = 10;
@@ -92,6 +92,17 @@ void test_heap() {
 
     BuildMaxHeap(&h);
     int iStopHere = 0;
+
+    MaxPriQueue q;
+    q.heap = &h;
+
+    MaxHeapItem maxItem;
+    PopPriQueueMax(&q, &maxItem);
+    PopPriQueueMax(&q, &maxItem);
+    PopPriQueueMax(&q, &maxItem);
+    PopPriQueueMax(&q, &maxItem);
+    PopPriQueueMax(&q, &maxItem);
+    PopPriQueueMax(&q, &maxItem);
 }
 
 /**************************************************************************
@@ -106,7 +117,7 @@ void test_heap() {
  **************************************************************************/
 
 void test0(void) {
-    test_heap();
+    test_queue();
 
     printf("This is Release %s:  Test 0\n", CURRENT_REL);
     GET_TIME_OF_DAY(&Z502_REG1);
