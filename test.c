@@ -78,7 +78,7 @@ void   GetSkewedRandomNumber( long *, long );
 void   Test2f_Statistics(int Pid);
 
 void test_queue() {
-    MaxHeapItem* items = malloc(sizeof(MaxHeapItem)* 6);
+    MaxHeapItem* items = malloc(sizeof(MaxHeapItem)* 8);
     items[1].key = 5;
     items[2].key = 10;
     items[3].key = 2;
@@ -88,15 +88,21 @@ void test_queue() {
     MaxHeap h;
     h.buffer = items;
     h.size = 5;
-    h.capacity = 5;
+    h.capacity = 7;
 
     BuildMaxHeap(&h);
+    //MaxHeapUpdateKey(&h, 4, 1);
+    MaxHeapInsert(&h, 11, 0);
     int iStopHere = 0;
 
     MaxPriQueue q;
     q.heap = &h;
 
     MaxHeapItem maxItem;
+    maxItem.key = 15;
+    maxItem.data = 0;
+
+    PushPriQueueMax(&q, &maxItem);
     PopPriQueueMax(&q, &maxItem);
     PopPriQueueMax(&q, &maxItem);
     PopPriQueueMax(&q, &maxItem);

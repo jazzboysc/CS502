@@ -23,9 +23,11 @@ typedef struct _MaxHeap
 //****************************************************************************
 #define HEAP_GET_KEY(heap, i) heap->buffer[i].key
 //****************************************************************************
+#define HEAP_SET_KEY(heap, i, newKey) heap->buffer[i].key = newKey
+//****************************************************************************
 #define HEAP_GET_DATA(heap, i) heap->buffer[i].data
 //****************************************************************************
-#define HEAP_SET_DATA(heap, i, data) heap->buffer[i].data = data
+#define HEAP_SET_DATA(heap, i, newData) heap->buffer[i].data = newData
 //****************************************************************************
 #define HEAP_SWAP(heap, i, j) \
     MaxHeapItem temp; \
@@ -36,5 +38,7 @@ typedef struct _MaxHeap
 
 void MaxHeapify(MaxHeap* heap, int i);
 void BuildMaxHeap(MaxHeap* heap);
+void MaxHeapUpdateKey(MaxHeap* heap, int i, int newKey);
+void MaxHeapInsert(MaxHeap* heap, int key, void* data);
 
 #endif

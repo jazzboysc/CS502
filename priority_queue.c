@@ -24,3 +24,10 @@ void PopPriQueueMax(MaxPriQueue* queue, MaxHeapItem* item)
     }
 }
 //****************************************************************************
+void PushPriQueueMax(MaxPriQueue* queue, MaxHeapItem* item)
+{
+    assert( queue && item );
+
+    MaxHeapInsert(queue->heap, item->key, item->data);
+}
+//****************************************************************************

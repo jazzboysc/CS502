@@ -44,3 +44,44 @@ void BuildMaxHeap(MaxHeap* heap)
     }
 }
 //****************************************************************************
+void MaxHeapUpdateKey(MaxHeap* heap, int i, int newKey)
+{
+    assert( heap );
+    assert( i >= 1 && i <= heap->size );
+
+    int oldKey = HEAP_GET_KEY(heap, i);
+    HEAP_SET_KEY(heap, i, newKey);
+
+    if( newKey > oldKey )
+    {
+        while( i > 1 )
+        {
+            int parent = HEAP_GET_PARENT_INDEX(i);
+            int parentKey = HEAP_GET_KEY(heap, parent);
+            if( newKey > parentKey )
+            {
+                HEAP_SWAP(heap, i, parent);
+                i = parent;
+            }
+        }
+    }
+    else if( newKey < oldKey )
+    {
+        MaxHeapify(heap, i);
+    }
+}
+//****************************************************************************
+void MaxHeapInsert(MaxHeap* heap, int key, void* data)
+{
+    assert( heap );
+
+    if( heap->size == heap->capacity )
+    {
+    }
+
+    heap->size++;
+    HEAP_SET_KEY(heap, heap->size, -1);
+    HEAP_SET_DATA(heap, heap->size, data);
+    MaxHeapUpdateKey(heap, heap->size, key);
+}
+//****************************************************************************
