@@ -9,6 +9,9 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
+    <Filter Include="Util">
+      <UniqueIdentifier>{76c999b1-e326-40a9-b510-fb5bd09526fe}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="global.h">
@@ -22,6 +25,12 @@
     </ClInclude>
     <ClInclude Include="z502.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="heap.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="priority_queue.h">
+      <Filter>Util</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -39,6 +48,12 @@
     </ClCompile>
     <ClCompile Include="z502.c">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="heap.c">
+      <Filter>Util</Filter>
+    </ClCompile>
+    <ClCompile Include="priority_queue.c">
+      <Filter>Util</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

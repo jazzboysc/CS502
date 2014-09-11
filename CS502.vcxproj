@@ -65,12 +65,16 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="global.h" />
+    <ClInclude Include="heap.h" />
+    <ClInclude Include="priority_queue.h" />
     <ClInclude Include="protos.h" />
     <ClInclude Include="syscalls.h" />
     <ClInclude Include="z502.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="base.c" />
+    <ClCompile Include="heap.c" />
+    <ClCompile Include="priority_queue.c" />
     <ClCompile Include="sample.c" />
     <ClCompile Include="state_printer.c" />
     <ClCompile Include="test.c" />

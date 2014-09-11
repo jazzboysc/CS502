@@ -51,6 +51,8 @@
 #include         "stdlib.h"
 #include         "math.h"
 
+#include         "heap.h"
+
 INT16 Z502_PROGRAM_COUNTER;
 
 extern long Z502_REG1;
@@ -75,6 +77,23 @@ void   GetRandomNumber( long *, long );
 void   GetSkewedRandomNumber( long *, long );
 void   Test2f_Statistics(int Pid);
 
+void test_heap() {
+    MaxHeapItem* items = malloc(sizeof(MaxHeapItem)* 6);
+    items[1].key = 5;
+    items[2].key = 10;
+    items[3].key = 2;
+    items[4].key = 7;
+    items[5].key = 6;
+
+    MaxHeap h;
+    h.buffer = items;
+    h.size = 5;
+    h.capacity = 5;
+
+    BuildMaxHeap(&h);
+    int iStopHere = 0;
+}
+
 /**************************************************************************
 
  Test0
@@ -87,6 +106,8 @@ void   Test2f_Statistics(int Pid);
  **************************************************************************/
 
 void test0(void) {
+    test_heap();
+
     printf("This is Release %s:  Test 0\n", CURRENT_REL);
     GET_TIME_OF_DAY(&Z502_REG1);
 
