@@ -5,11 +5,22 @@
 
 typedef struct _MaxPriQueue
 {
-    Heap* heap;
+    Heap heap;
 } MaxPriQueue;
 
+void MaxPriQueueInit(MaxPriQueue* queue, int capacity);
 HeapItem* GetPriQueueMax(MaxPriQueue* queue);
-void PopPriQueueMax(MaxPriQueue* queue, HeapItem* item);
-void PushPriQueueMax(MaxPriQueue* queue, HeapItem* item);
+void MaxPriQueuePop(MaxPriQueue* queue, HeapItem* dst);
+void MaxPriQueuePush(MaxPriQueue* queue, int key, void* data);
+
+typedef struct _MinPriQueue
+{
+    Heap heap;
+} MinPriQueue;
+
+void MinPriQueueInit(MinPriQueue* queue, int capacity);
+HeapItem* GetPriQueueMin(MinPriQueue* queue);
+void MinPriQueuePop(MinPriQueue* queue, HeapItem* dst);
+void MinPriQueuePush(MinPriQueue* queue, int key, void* data);
 
 #endif

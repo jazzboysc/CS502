@@ -1,6 +1,11 @@
 #ifndef HEAP_H_
 #define HEAP_H_
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <assert.h>
+
 typedef struct _HeapItemKey
 {
     int key;
@@ -22,6 +27,7 @@ typedef struct _Heap
     int capacity;
     HeapCompareKey compare;
     unsigned int timeStamp;
+    int isMaxHeap;
 } Heap;
 
 //****************************************************************************
@@ -46,10 +52,11 @@ typedef struct _Heap
     heap->buffer[j] = temp; \
 //****************************************************************************
 
-void HeapInit(Heap* heap, int capacity, HeapCompareKey compare);
+void HeapInit(Heap* heap, int capacity, HeapCompareKey compare, int isMaxHeap);
 void HeapAdjust(Heap* heap, int i);
 void HeapBuild(Heap* heap);
-void HeapUpdateKey(Heap* heap, int i, HeapItemKey* newKey);
-void HeapInsert(Heap* heap, HeapItemKey* key, void* data);
+void HeapUpdateKey(Heap* heap, int i, int newKey);
+void HeapPush(Heap* heap, int key, void* data);
+void HeapPop(Heap* heap, HeapItem* dst);
 
 #endif

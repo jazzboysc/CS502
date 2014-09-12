@@ -78,37 +78,46 @@ void   GetSkewedRandomNumber( long *, long );
 void   Test2f_Statistics(int Pid);
 
 void test_queue() {
-    //HeapItem* items = malloc(sizeof(HeapItem)* 8);
-    //items[1].key = 5;
-    //items[2].key = 10;
-    //items[3].key = 2;
-    //items[4].key = 7;
-    //items[5].key = 6;
+    MaxPriQueue* queue = malloc(sizeof(MaxPriQueue));
+    MaxPriQueueInit(queue, 8);
 
-    //Heap h;
-    //h.buffer = items;
-    //h.size = 5;
-    //h.capacity = 7;
+    MaxPriQueuePush(queue, 10, 0);
+    MaxPriQueuePush(queue, 15, 0);
+    MaxPriQueuePush(queue, 1, 0);
+    MaxPriQueuePush(queue, 10, 0);
+    MaxPriQueuePush(queue, 8, 0);
+    MaxPriQueuePush(queue, 10, 0);
 
-    //HeapBuild(&h);
-    ////HeapUpdateKey(&h, 4, 1);
-    //HeapInsert(&h, 11, 0);
-    //int iStopHere = 0;
+    HeapItem item;
+    MaxPriQueuePop(queue, &item);
+    MaxPriQueuePop(queue, &item);
+    MaxPriQueuePop(queue, &item);
+    MaxPriQueuePop(queue, &item);
+    MaxPriQueuePop(queue, &item);
+    MaxPriQueuePop(queue, &item);
 
-    //MaxPriQueue q;
-    //q.heap = &h;
+    free(queue);
+    queue = 0;
 
-    //HeapItem maxItem;
-    //maxItem.key = 15;
-    //maxItem.data = 0;
+    MinPriQueue* queue2 = malloc(sizeof(MinPriQueue));
+    MinPriQueueInit(queue2, 8);
 
-    //PushPriQueueMax(&q, &maxItem);
-    //PopPriQueueMax(&q, &maxItem);
-    //PopPriQueueMax(&q, &maxItem);
-    //PopPriQueueMax(&q, &maxItem);
-    //PopPriQueueMax(&q, &maxItem);
-    //PopPriQueueMax(&q, &maxItem);
-    //PopPriQueueMax(&q, &maxItem);
+    MinPriQueuePush(queue2, 10, 0);
+    MinPriQueuePush(queue2, 15, 0);
+    MinPriQueuePush(queue2, 1, 0);
+    MinPriQueuePush(queue2, 10, 0);
+    MinPriQueuePush(queue2, 8, 0);
+    MinPriQueuePush(queue2, 10, 0);
+
+    MinPriQueuePop(queue2, &item);
+    MinPriQueuePop(queue2, &item);
+    MinPriQueuePop(queue2, &item);
+    MinPriQueuePop(queue2, &item);
+    MinPriQueuePop(queue2, &item);
+    MinPriQueuePop(queue2, &item);
+
+    free(queue2);
+    queue2 = 0;
 }
 
 /**************************************************************************
