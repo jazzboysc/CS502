@@ -1,18 +1,28 @@
 #ifndef HEAP_H_
 #define HEAP_H_
 
-typedef struct _MaxHeapItem
+typedef struct _HeapItemKey
 {
     int key;
-    void* data;
-} MaxHeapItem;
+    int timeStamp;
+} HeapItemKey;
 
-typedef struct _MaxHeap
+typedef struct _HeapItem
 {
-    MaxHeapItem* buffer;
+    HeapItemKey key;
+    void* data;
+} HeapItem;
+
+typedef int(*HeapCompareKey)(HeapItemKey* key1, HeapItemKey* key2);
+
+typedef struct _Heap
+{
+    HeapItem* buffer;
     int size;
     int capacity;
-} MaxHeap;
+    HeapCompareKey compare;
+    unsigned int timeStamp;
+} Heap;
 
 //****************************************************************************
 #define HEAP_GET_PARENT_INDEX(i) i >> 1
@@ -30,15 +40,16 @@ typedef struct _MaxHeap
 #define HEAP_SET_DATA(heap, i, newData) heap->buffer[i].data = newData
 //****************************************************************************
 #define HEAP_SWAP(heap, i, j) \
-    MaxHeapItem temp; \
+    HeapItem temp; \
     temp = heap->buffer[i]; \
     heap->buffer[i] = heap->buffer[j]; \
     heap->buffer[j] = temp; \
 //****************************************************************************
 
-void MaxHeapify(MaxHeap* heap, int i);
-void BuildMaxHeap(MaxHeap* heap);
-void MaxHeapUpdateKey(MaxHeap* heap, int i, int newKey);
-void MaxHeapInsert(MaxHeap* heap, int key, void* data);
+void HeapInit(Heap* heap, int capacity, HeapCompareKey compare);
+void HeapAdjust(Heap* heap, int i);
+void HeapBuild(Heap* heap);
+void HeapUpdateKey(Heap* heap, int i, HeapItemKey* newKey);
+void HeapInsert(Heap* heap, HeapItemKey* key, void* data);
 
 #endif

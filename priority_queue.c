@@ -2,7 +2,7 @@
 #include <assert.h>
 
 //****************************************************************************
-MaxHeapItem* GetPriQueueMax(MaxPriQueue* queue)
+HeapItem* GetPriQueueMax(MaxPriQueue* queue)
 {
     assert( queue );
     assert( queue->heap->size >= 1 );
@@ -10,7 +10,7 @@ MaxHeapItem* GetPriQueueMax(MaxPriQueue* queue)
     return &queue->heap->buffer[1];
 }
 //****************************************************************************
-void PopPriQueueMax(MaxPriQueue* queue, MaxHeapItem* item)
+void PopPriQueueMax(MaxPriQueue* queue, HeapItem* item)
 {
     assert( queue && item );
     assert( queue->heap->size >= 1 );
@@ -20,14 +20,14 @@ void PopPriQueueMax(MaxPriQueue* queue, MaxHeapItem* item)
     queue->heap->size--;
     if( queue->heap->size > 0 )
     {
-        MaxHeapify(queue->heap, 1);
+        HeapAdjust(queue->heap, 1);
     }
 }
 //****************************************************************************
-void PushPriQueueMax(MaxPriQueue* queue, MaxHeapItem* item)
+void PushPriQueueMax(MaxPriQueue* queue, HeapItem* item)
 {
     assert( queue && item );
 
-    MaxHeapInsert(queue->heap, item->key, item->data);
+    //HeapInsert(queue->heap, item->key, item->data);
 }
 //****************************************************************************
