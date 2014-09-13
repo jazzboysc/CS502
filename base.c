@@ -61,13 +61,6 @@ void    interrupt_handler( void ) {
     // Now read the status of this device
     MEM_READ(Z502InterruptStatus, &status );
 
-    /** REMOVE THE NEXT SIX LINES **/
-    how_many_interrupt_entries++;                         /** TEMP **/
-    if ( remove_this_in_your_code && ( how_many_interrupt_entries < 20 ) )
-        {
-        printf( "Interrupt_handler: Found device ID %d with status %d\n",
-                        device_id, status );
-    }
 
     // Clear out this device - we're done with it
     MEM_WRITE(Z502InterruptClear, &Index );
@@ -111,7 +104,9 @@ void    svc( SYSTEM_CALL_DATA *SystemCallData ) {
     short               call_type;
     static short        do_print = 10;
     short               i;
-    INT32               Time = 0;
+    INT32               Time;
+    INT32               Status;
+    INT32               Temp;
 
     call_type = (short)SystemCallData->SystemCallNumber;
     if ( do_print > 0 ) {
@@ -128,7 +123,33 @@ void    svc( SYSTEM_CALL_DATA *SystemCallData ) {
     switch (call_type) {
     case SYSNUM_GET_TIME_OF_DAY:
         CALL(MEM_READ(Z502ClockStatus, &Time));
-        *(INT32 *)SystemCallData->Argument[0] = Time;
+        *(INT32*)SystemCallData->Argument[0] = Time;
+        break;
+
+    case SYSNUM_SLEEP:
+        CALL(MEM_READ(Z502TimerStatus, &Status));
+        if( Status == DEVICE_FREE )
+        {
+            printf("Timer is free\n");
+        }
+        else
+        {
+            printf("Timer is busy\n");
+        }
+
+        Temp = *(INT32*)SystemCallData->Argument[0];
+        CALL(MEM_WRITE(Z502TimerStart, &Temp));
+        CALL(MEM_READ(Z502TimerStatus, &Status));
+        if( Status == DEVICE_IN_USE )
+        {
+            printf("Timer started\n");
+        }
+        else
+        {
+            printf("Unable to start timer\n");
+        }
+        Z502Idle();
+
         break;
 
     case SYSNUM_TERMINATE_PROCESS:
@@ -178,6 +199,6 @@ void    osInit( int argc, char *argv[]  ) {
 
     /*  This should be done by a "os_make_process" routine, so that
         test0 runs on a process recognized by the operating system.    */
-    Z502MakeContext( &next_context, (void *)test0, USER_MODE );
+    Z502MakeContext( &next_context, (void *)test1a, USER_MODE );
     Z502SwitchContext( SWITCH_CONTEXT_KILL_MODE, &next_context );
 }                                               // End of osInit

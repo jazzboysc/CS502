@@ -158,13 +158,13 @@ void test0(void) {
  **************************************************************************/
 
 void test1a(void) {
-    static long    SleepTime = 100;
+    static long    SleepTime = 100000;
     static INT32   time1, time2;
 
     printf("This is Release %s:  Test 1a\n", CURRENT_REL);
     GET_TIME_OF_DAY(&time1);
 
-    SLEEP(SleepTime);
+    SLEEP(&SleepTime);
 
     GET_TIME_OF_DAY(&time2);
 
