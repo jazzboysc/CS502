@@ -66,6 +66,7 @@
   <ItemGroup>
     <ClInclude Include="global.h" />
     <ClInclude Include="heap.h" />
+    <ClInclude Include="os_structs.h" />
     <ClInclude Include="priority_queue.h" />
     <ClInclude Include="protos.h" />
     <ClInclude Include="syscalls.h" />

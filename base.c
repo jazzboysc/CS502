@@ -27,6 +27,9 @@
 #include             "protos.h"
 #include             "string.h"
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 
 // These loacations are global and define information about the page table
 extern UINT16        *Z502_PAGE_TBL_ADDR;
@@ -197,8 +200,24 @@ void    osInit( int argc, char *argv[]  ) {
         Z502SwitchContext( SWITCH_CONTEXT_KILL_MODE, &next_context );
     }                   /* This routine should never return!!           */
 
-    /*  This should be done by a "os_make_process" routine, so that
-        test0 runs on a process recognized by the operating system.    */
-    Z502MakeContext( &next_context, (void *)test1a, USER_MODE );
-    Z502SwitchContext( SWITCH_CONTEXT_KILL_MODE, &next_context );
+    OSCreateProcess("test1a", test1a, 10, 0, 0);
 }                                               // End of osInit
+
+void OSCreateProcess(char* name, ProcessEntry entry, int priority, long* reg1, long* reg2)
+{
+    if( !name || !entry )
+    {
+        return;
+    }
+
+    PCB* pcb = calloc(1, sizeof(PCB));
+    pcb->entry = entry;
+    pcb->priority = priority;
+    size_t len = strlen(name);
+    pcb->name = malloc(len + 1);
+    strcpy(pcb->name, name);
+    pcb->name[len] = 0;
+   
+    Z502MakeContext(&pcb->context, (void*)entry, USER_MODE);
+    Z502SwitchContext(SWITCH_CONTEXT_KILL_MODE, &pcb->context);
+}

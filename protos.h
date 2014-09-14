@@ -17,6 +17,7 @@ protos.h
 #define  PROTOS_H
 
 #include     "syscalls.h"
+#include     "os_structs.h"
 
 //                      ENTRIES in base.c
 
@@ -24,6 +25,7 @@ void   interrupt_handler( void );
 void   fault_handler( void );
 void   svc( SYSTEM_CALL_DATA * );
 void   osInit (int argc, char *argv[] );
+void   OSCreateProcess(char* name, ProcessEntry entry, int priority, long* reg1, long* reg2);
 
 //                     ENTRIES in sample.c
 
