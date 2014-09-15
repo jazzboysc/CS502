@@ -26,14 +26,20 @@
 #include             "syscalls.h"
 #include             "protos.h"
 #include             "string.h"
+#include             "z502.h"
+#include             "list.h"
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 
 // These loacations are global and define information about the page table
-extern UINT16        *Z502_PAGE_TBL_ADDR;
+extern UINT16*       Z502_PAGE_TBL_ADDR;
 extern INT16         Z502_PAGE_TBL_LENGTH;
+extern Z502CONTEXT*  Z502_CURRENT_CONTEXT;
+
+// OS global variables.
+List* RunningProcesses;
 
 extern void          *TO_VECTOR [];
 
@@ -110,6 +116,7 @@ void    svc( SYSTEM_CALL_DATA *SystemCallData ) {
     INT32               Time;
     INT32               Status;
     INT32               Temp;
+    void*               currentContext;
 
     call_type = (short)SystemCallData->SystemCallNumber;
     if ( do_print > 0 ) {
@@ -130,6 +137,7 @@ void    svc( SYSTEM_CALL_DATA *SystemCallData ) {
         break;
 
     case SYSNUM_SLEEP:
+        currentContext = (void*)Z502_CURRENT_CONTEXT;
         CALL(MEM_READ(Z502TimerStatus, &Status));
         if( Status == DEVICE_FREE )
         {
@@ -200,6 +208,7 @@ void    osInit( int argc, char *argv[]  ) {
         Z502SwitchContext( SWITCH_CONTEXT_KILL_MODE, &next_context );
     }                   /* This routine should never return!!           */
 
+    RunningProcesses = calloc(1, sizeof(List));
     OSCreateProcess("test1a", test1a, 10, 0, 0);
 }                                               // End of osInit
 
@@ -217,6 +226,10 @@ void OSCreateProcess(char* name, ProcessEntry entry, int priority, long* reg1, l
     pcb->name = malloc(len + 1);
     strcpy(pcb->name, name);
     pcb->name[len] = 0;
+
+    ListNode* pcbNode = calloc(1, sizeof(ListNode));
+    pcbNode->data = (void*)pcb;
+    ListAttach(RunningProcesses, pcbNode);
    
     Z502MakeContext(&pcb->context, (void*)entry, USER_MODE);
     Z502SwitchContext(SWITCH_CONTEXT_KILL_MODE, &pcb->context);

@@ -66,6 +66,7 @@
   <ItemGroup>
     <ClInclude Include="global.h" />
     <ClInclude Include="heap.h" />
+    <ClInclude Include="list.h" />
     <ClInclude Include="os_structs.h" />
     <ClInclude Include="priority_queue.h" />
     <ClInclude Include="protos.h" />
@@ -75,6 +76,7 @@
   <ItemGroup>
     <ClCompile Include="base.c" />
     <ClCompile Include="heap.c" />
+    <ClCompile Include="list.c" />
     <ClCompile Include="priority_queue.c" />
     <ClCompile Include="sample.c" />
     <ClCompile Include="state_printer.c" />

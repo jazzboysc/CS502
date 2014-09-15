@@ -35,6 +35,9 @@
     <ClInclude Include="os_structs.h">
       <Filter>Util</Filter>
     </ClInclude>
+    <ClInclude Include="list.h">
+      <Filter>Util</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="base.c">
@@ -56,6 +59,9 @@
       <Filter>Util</Filter>
     </ClCompile>
     <ClCompile Include="priority_queue.c">
+      <Filter>Util</Filter>
+    </ClCompile>
+    <ClCompile Include="list.c">
       <Filter>Util</Filter>
     </ClCompile>
   </ItemGroup>
