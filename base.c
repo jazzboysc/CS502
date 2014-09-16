@@ -62,8 +62,6 @@ void    interrupt_handler( void ) {
     INT32              device_id;
     INT32              status;
     INT32              Index = 0;
-    static BOOL        remove_this_in_your_code = TRUE;   /** TEMP **/
-    static INT32       how_many_interrupt_entries = 0;    /** TEMP **/
 
     // Get cause of interrupt
     MEM_READ(Z502InterruptDevice, &device_id );
@@ -72,6 +70,15 @@ void    interrupt_handler( void ) {
     // Now read the status of this device
     MEM_READ(Z502InterruptStatus, &status );
 
+    switch( device_id )
+    {
+    case 4:
+        TimerInterrupt();
+        break;
+
+    default:
+        break;
+    }
 
     // Clear out this device - we're done with it
     MEM_WRITE(Z502InterruptClear, &Index );
@@ -136,8 +143,7 @@ void    svc( SYSTEM_CALL_DATA *SystemCallData ) {
         break;
 
     case SYSNUM_SLEEP:
-        AddToTimerQueue(SystemCallData);
-        Z502Idle();
+        StartTimer(SystemCallData);
 
         break;
 
@@ -210,12 +216,16 @@ PCB* GetPCB(void* context)
     return 0;
 }
 //****************************************************************************
-void AddToTimerQueue(SYSTEM_CALL_DATA *SystemCallData)
+void TimerInterrupt()
+{
+    RemoveFromTimerQueue();
+}
+//****************************************************************************
+void StartTimer(SYSTEM_CALL_DATA *SystemCallData)
 {
     INT32               currentTime;
     INT32               Status;
     INT32               sleepTime;
-    INT32               totalTime;
     void*               currentContext;
 
     // Find caller's PCB.
@@ -224,8 +234,9 @@ void AddToTimerQueue(SYSTEM_CALL_DATA *SystemCallData)
 
     CALL(MEM_READ(Z502ClockStatus, &currentTime));
     sleepTime = *(INT32*)SystemCallData->Argument[0];
-    totalTime = currentTime + sleepTime;
-    MinPriQueuePush(TimerQueue, totalTime, pcb);
+    pcb->timerQueueKey = currentTime + sleepTime;
+
+    AddToTimerQueue(pcb);
 
     CALL(MEM_READ(Z502TimerStatus, &Status));
     if( Status == DEVICE_FREE )
@@ -247,6 +258,19 @@ void AddToTimerQueue(SYSTEM_CALL_DATA *SystemCallData)
     {
         printf("Unable to start timer\n");
     }
+
+    Z502Idle();
+}
+//****************************************************************************
+void RemoveFromTimerQueue()
+{
+    HeapItem item;
+    MinPriQueuePop(TimerQueue, &item);
+}
+//****************************************************************************
+void AddToTimerQueue(PCB* pcb)
+{
+    MinPriQueuePush(TimerQueue, pcb->timerQueueKey, pcb);
 }
 //****************************************************************************
 void OSCreateProcess(char* name, ProcessEntry entry, int priority, long* reg1,
