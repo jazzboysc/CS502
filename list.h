@@ -6,8 +6,7 @@
 #include <string.h>
 #include <assert.h>
 
-struct ListNode;
-typedef struct _ListNode
+typedef struct ListNode
 {
     void* data;
     struct ListNode* next;

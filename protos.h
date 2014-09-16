@@ -25,6 +25,8 @@ void   interrupt_handler( void );
 void   fault_handler( void );
 void   svc( SYSTEM_CALL_DATA * );
 void   osInit (int argc, char *argv[] );
+
+void   AddToTimerQueue(SYSTEM_CALL_DATA *SystemCallData);
 void   OSCreateProcess(char* name, ProcessEntry entry, int priority, long* reg1, long* reg2);
 
 //                     ENTRIES in sample.c

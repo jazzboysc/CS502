@@ -28,6 +28,7 @@
 #include             "string.h"
 #include             "z502.h"
 #include             "list.h"
+#include             "priority_queue.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -40,6 +41,7 @@ extern Z502CONTEXT*  Z502_CURRENT_CONTEXT;
 
 // OS global variables.
 List* RunningProcesses;
+MinPriQueue* TimerQueue;
 
 extern void          *TO_VECTOR [];
 
@@ -114,9 +116,6 @@ void    svc( SYSTEM_CALL_DATA *SystemCallData ) {
     static short        do_print = 10;
     short               i;
     INT32               Time;
-    INT32               Status;
-    INT32               Temp;
-    void*               currentContext;
 
     call_type = (short)SystemCallData->SystemCallNumber;
     if ( do_print > 0 ) {
@@ -137,28 +136,7 @@ void    svc( SYSTEM_CALL_DATA *SystemCallData ) {
         break;
 
     case SYSNUM_SLEEP:
-        currentContext = (void*)Z502_CURRENT_CONTEXT;
-        CALL(MEM_READ(Z502TimerStatus, &Status));
-        if( Status == DEVICE_FREE )
-        {
-            printf("Timer is free\n");
-        }
-        else
-        {
-            printf("Timer is busy\n");
-        }
-
-        Temp = *(INT32*)SystemCallData->Argument[0];
-        CALL(MEM_WRITE(Z502TimerStart, &Temp));
-        CALL(MEM_READ(Z502TimerStatus, &Status));
-        if( Status == DEVICE_IN_USE )
-        {
-            printf("Timer started\n");
-        }
-        else
-        {
-            printf("Unable to start timer\n");
-        }
+        AddToTimerQueue(SystemCallData);
         Z502Idle();
 
         break;
@@ -208,11 +186,71 @@ void    osInit( int argc, char *argv[]  ) {
         Z502SwitchContext( SWITCH_CONTEXT_KILL_MODE, &next_context );
     }                   /* This routine should never return!!           */
 
+    // Init OS global variables.
     RunningProcesses = calloc(1, sizeof(List));
+    TimerQueue = calloc(1, sizeof(MinPriQueue));
+    MinPriQueueInit(TimerQueue, 16);
+
     OSCreateProcess("test1a", test1a, 10, 0, 0);
 }                                               // End of osInit
 
-void OSCreateProcess(char* name, ProcessEntry entry, int priority, long* reg1, long* reg2)
+//****************************************************************************
+PCB* GetPCB(void* context)
+{
+    ListNode* currentNode = RunningProcesses->head;
+    while( currentNode )
+    {
+        if( ((PCB*)currentNode->data)->context == context )
+        {
+            return (PCB*)currentNode->data;
+        }
+        currentNode = currentNode->next;
+    }
+
+    return 0;
+}
+//****************************************************************************
+void AddToTimerQueue(SYSTEM_CALL_DATA *SystemCallData)
+{
+    INT32               currentTime;
+    INT32               Status;
+    INT32               sleepTime;
+    INT32               totalTime;
+    void*               currentContext;
+
+    // Find caller's PCB.
+    currentContext = (void*)Z502_CURRENT_CONTEXT;
+    PCB* pcb = GetPCB(currentContext);
+
+    CALL(MEM_READ(Z502ClockStatus, &currentTime));
+    sleepTime = *(INT32*)SystemCallData->Argument[0];
+    totalTime = currentTime + sleepTime;
+    MinPriQueuePush(TimerQueue, totalTime, pcb);
+
+    CALL(MEM_READ(Z502TimerStatus, &Status));
+    if( Status == DEVICE_FREE )
+    {
+        printf("Timer is free\n");
+    }
+    else
+    {
+        printf("Timer is busy\n");
+    }
+
+    CALL(MEM_WRITE(Z502TimerStart, &sleepTime));
+    CALL(MEM_READ(Z502TimerStatus, &Status));
+    if( Status == DEVICE_IN_USE )
+    {
+        printf("Timer started\n");
+    }
+    else
+    {
+        printf("Unable to start timer\n");
+    }
+}
+//****************************************************************************
+void OSCreateProcess(char* name, ProcessEntry entry, int priority, long* reg1,
+    long* reg2)
 {
     if( !name || !entry )
     {
@@ -234,3 +272,4 @@ void OSCreateProcess(char* name, ProcessEntry entry, int priority, long* reg1, l
     Z502MakeContext(&pcb->context, (void*)entry, USER_MODE);
     Z502SwitchContext(SWITCH_CONTEXT_KILL_MODE, &pcb->context);
 }
+//****************************************************************************

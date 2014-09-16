@@ -6,7 +6,7 @@ typedef void(*ProcessEntry)(void);
 typedef struct _PCB
 {
     char*         name;
-    ProcessEntry* entry;
+    ProcessEntry  entry;
     int           priority;
     int           timerQueueKey;
     int           readyQueueKey;
