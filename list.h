@@ -15,6 +15,7 @@ typedef struct ListNode
 typedef struct _List
 {
     ListNode* head;
+    int count;
 } List;
 
 void ListAttach(List* list, ListNode* node);

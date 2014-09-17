@@ -16,5 +16,7 @@ void ListAttach(List* list, ListNode* node)
         }
         current->next = node;
     }
+
+    list->count++;
 }
 //****************************************************************************

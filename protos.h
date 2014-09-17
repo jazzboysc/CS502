@@ -27,8 +27,9 @@ void   svc( SYSTEM_CALL_DATA * );
 void   osInit (int argc, char *argv[] );
 
 void   TimerInterrupt();
-void   SVCCreateProcess(SYSTEM_CALL_DATA *SystemCallData);
-void   SVCStartTimer(SYSTEM_CALL_DATA *SystemCallData);
+void   SVCTerminateProcess(SYSTEM_CALL_DATA* SystemCallData);
+void   SVCCreateProcess(SYSTEM_CALL_DATA* SystemCallData);
+void   SVCStartTimer(SYSTEM_CALL_DATA* SystemCallData);
 void   RemoveFromTimerQueue();
 void   AddToTimerQueue(PCB* pcb);
 void   OSCreateProcess(char* name, ProcessEntry entry, int priority, long* reg1, long* reg2);

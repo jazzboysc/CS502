@@ -42,6 +42,7 @@ extern Z502CONTEXT*  Z502_CURRENT_CONTEXT;
 // OS global variables.
 List* RunningProcesses;
 MinPriQueue* TimerQueue;
+MinPriQueue* ReadyQueue;
 
 extern void          *TO_VECTOR [];
 
@@ -198,11 +199,38 @@ void    osInit( int argc, char *argv[]  ) {
     // Init OS global variables.
     RunningProcesses = calloc(1, sizeof(List));
     TimerQueue = calloc(1, sizeof(MinPriQueue));
-    MinPriQueueInit(TimerQueue, 16);
+    MinPriQueueInit(TimerQueue, MAX_PROCESS_NUM);
+    ReadyQueue = calloc(1, sizeof(MinPriQueue));
+    MinPriQueueInit(ReadyQueue, MAX_PROCESS_NUM);
 
     OSCreateProcess("test1a", test1a, 10, 0, 0);
 }                                               // End of osInit
 
+//****************************************************************************
+int GetProcessCount()
+{
+    if( RunningProcesses )
+    {
+        return RunningProcesses->count;
+    }
+
+    return 0;
+}
+//****************************************************************************
+PCB* GetPCBByID(long processID)
+{
+    ListNode* currentNode = RunningProcesses->head;
+    while( currentNode )
+    {
+        if( ((PCB*)currentNode->data)->processID == processID )
+        {
+            return (PCB*)currentNode->data;
+        }
+        currentNode = currentNode->next;
+    }
+
+    return 0;
+}
 //****************************************************************************
 PCB* GetPCBByName(char* name)
 {
@@ -239,7 +267,19 @@ void TimerInterrupt()
     RemoveFromTimerQueue();
 }
 //****************************************************************************
-void SVCCreateProcess(SYSTEM_CALL_DATA *SystemCallData)
+void SVCTerminateProcess(SYSTEM_CALL_DATA* SystemCallData)
+{
+    long processID = *(long*)SystemCallData->Argument[0];
+    PCB* pcb = GetPCBByID(processID);
+    if( !pcb )
+    {
+        *(long*)SystemCallData->Argument[1] = 
+            ERR_TERMINATE_PROCESS_ID_NOT_FOUND;
+    }
+    Z502DestroyContext(&pcb->context);
+}
+//****************************************************************************
+void SVCCreateProcess(SYSTEM_CALL_DATA* SystemCallData)
 {
     OSCreateProcess((char*)SystemCallData->Argument[0],
                     (ProcessEntry)SystemCallData->Argument[1],
@@ -248,7 +288,7 @@ void SVCCreateProcess(SYSTEM_CALL_DATA *SystemCallData)
                     (long*)SystemCallData->Argument[4]);
 }
 //****************************************************************************
-void SVCStartTimer(SYSTEM_CALL_DATA *SystemCallData)
+void SVCStartTimer(SYSTEM_CALL_DATA* SystemCallData)
 {
     INT32               currentTime;
     INT32               Status;
@@ -305,6 +345,13 @@ void OSCreateProcess(char* name, ProcessEntry entry, int priority, long* dstID,
 {
     static long CurrentProcessID = 0;
 
+    int processCount = GetProcessCount();
+    if( processCount > MAX_PROCESS_NUM )
+    {
+        *dstErr = ERR_CREAT_PROCESS_REACH_MAX_NUM;
+        return;
+    }
+
     if( priority == ILLEGAL_PRIORITY )
     {
         *dstErr = ERR_CREAT_PROCESS_ILLEGAL_PRIORITY;
@@ -341,10 +388,15 @@ void OSCreateProcess(char* name, ProcessEntry entry, int priority, long* dstID,
 
     // Return process id to the caller.
     *dstID = pcb->processID;
+    *dstErr = ERR_SUCCESS;
 
+    // Add to global process list.
     ListNode* pcbNode = calloc(1, sizeof(ListNode));
     pcbNode->data = (void*)pcb;
     ListAttach(RunningProcesses, pcbNode);
+
+    // Add tp ready queue.
+    MinPriQueuePush(ReadyQueue, priority, pcb);
    
     Z502MakeContext(&pcb->context, (void*)entry, USER_MODE);
     Z502SwitchContext(SWITCH_CONTEXT_KILL_MODE, &pcb->context);
