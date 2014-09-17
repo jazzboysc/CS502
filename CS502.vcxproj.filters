@@ -32,10 +32,10 @@
     <ClInclude Include="priority_queue.h">
       <Filter>Util</Filter>
     </ClInclude>
-    <ClInclude Include="os_structs.h">
+    <ClInclude Include="list.h">
       <Filter>Util</Filter>
     </ClInclude>
-    <ClInclude Include="list.h">
+    <ClInclude Include="os_common.h">
       <Filter>Util</Filter>
     </ClInclude>
   </ItemGroup>

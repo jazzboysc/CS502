@@ -142,9 +142,12 @@ void    svc( SYSTEM_CALL_DATA *SystemCallData ) {
         *(INT32*)SystemCallData->Argument[0] = Time;
         break;
 
-    case SYSNUM_SLEEP:
-        StartTimer(SystemCallData);
+    case SYSNUM_CREATE_PROCESS:
+        SVCCreateProcess(SystemCallData);
+        break;
 
+    case SYSNUM_SLEEP:
+        SVCStartTimer(SystemCallData);
         break;
 
     case SYSNUM_TERMINATE_PROCESS:
@@ -201,7 +204,22 @@ void    osInit( int argc, char *argv[]  ) {
 }                                               // End of osInit
 
 //****************************************************************************
-PCB* GetPCB(void* context)
+PCB* GetPCBByName(char* name)
+{
+    ListNode* currentNode = RunningProcesses->head;
+    while( currentNode )
+    {
+        if( strcmp(((PCB*)currentNode->data)->name, name) == 0 )
+        {
+            return (PCB*)currentNode->data;
+        }
+        currentNode = currentNode->next;
+    }
+
+    return 0;
+}
+//****************************************************************************
+PCB* GetPCBByContext(void* context)
 {
     ListNode* currentNode = RunningProcesses->head;
     while( currentNode )
@@ -221,7 +239,16 @@ void TimerInterrupt()
     RemoveFromTimerQueue();
 }
 //****************************************************************************
-void StartTimer(SYSTEM_CALL_DATA *SystemCallData)
+void SVCCreateProcess(SYSTEM_CALL_DATA *SystemCallData)
+{
+    OSCreateProcess((char*)SystemCallData->Argument[0],
+                    (ProcessEntry)SystemCallData->Argument[1],
+                    *(int*)SystemCallData->Argument[2],
+                    (long*)SystemCallData->Argument[3],
+                    (long*)SystemCallData->Argument[4]);
+}
+//****************************************************************************
+void SVCStartTimer(SYSTEM_CALL_DATA *SystemCallData)
 {
     INT32               currentTime;
     INT32               Status;
@@ -230,7 +257,7 @@ void StartTimer(SYSTEM_CALL_DATA *SystemCallData)
 
     // Find caller's PCB.
     currentContext = (void*)Z502_CURRENT_CONTEXT;
-    PCB* pcb = GetPCB(currentContext);
+    PCB* pcb = GetPCBByContext(currentContext);
 
     CALL(MEM_READ(Z502ClockStatus, &currentTime));
     sleepTime = *(INT32*)SystemCallData->Argument[0];
@@ -273,11 +300,33 @@ void AddToTimerQueue(PCB* pcb)
     MinPriQueuePush(TimerQueue, pcb->timerQueueKey, pcb);
 }
 //****************************************************************************
-void OSCreateProcess(char* name, ProcessEntry entry, int priority, long* reg1,
-    long* reg2)
+void OSCreateProcess(char* name, ProcessEntry entry, int priority, long* dstID,
+    long* dstErr)
 {
-    if( !name || !entry )
+    static long CurrentProcessID = 0;
+
+    if( priority == ILLEGAL_PRIORITY )
     {
+        *dstErr = ERR_CREAT_PROCESS_ILLEGAL_PRIORITY;
+        return;
+    }
+
+    if( !name )
+    {
+        *dstErr = ERR_CREAT_PROCESS_ILLEGAL_NAME;
+        return;
+    }
+
+    PCB* oldPcb = GetPCBByName(name);
+    if( oldPcb )
+    {
+        *dstErr = ERR_CREAT_PROCESS_ILLEGAL_NAME;
+        return;
+    }
+
+    if( !entry )
+    {
+        *dstErr = ERR_CREAT_PROCESS_ILLEGAL_ENTRY;
         return;
     }
 
@@ -288,6 +337,10 @@ void OSCreateProcess(char* name, ProcessEntry entry, int priority, long* reg1,
     pcb->name = malloc(len + 1);
     strcpy(pcb->name, name);
     pcb->name[len] = 0;
+    pcb->processID = ++CurrentProcessID;
+
+    // Return process id to the caller.
+    *dstID = pcb->processID;
 
     ListNode* pcbNode = calloc(1, sizeof(ListNode));
     pcbNode->data = (void*)pcb;
