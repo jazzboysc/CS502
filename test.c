@@ -89,7 +89,7 @@ void test_queue() {
     MaxPriQueuePush(queue, 10, 0);
 
     HeapItem item;
-    MaxPriQueuePop(queue, &item);
+    MaxPriQueueRemove(queue, 2, &item);
     MaxPriQueuePop(queue, &item);
     MaxPriQueuePop(queue, &item);
     MaxPriQueuePop(queue, &item);
@@ -109,7 +109,7 @@ void test_queue() {
     MinPriQueuePush(queue2, 8, 0);
     MinPriQueuePush(queue2, 10, 0);
 
-    MinPriQueuePop(queue2, &item);
+    MinPriQueueRemove(queue2, 2, &item);
     MinPriQueuePop(queue2, &item);
     MinPriQueuePop(queue2, &item);
     MinPriQueuePop(queue2, &item);
@@ -132,8 +132,6 @@ void test_queue() {
  **************************************************************************/
 
 void test0(void) {
-    test_queue();
-
     printf("This is Release %s:  Test 0\n", CURRENT_REL);
     GET_TIME_OF_DAY(&Z502_REG1);
 
@@ -160,6 +158,8 @@ void test0(void) {
 void test1a(void) {
     static long    SleepTime = 100000;
     static INT32   time1, time2;
+
+    test_queue();
 
     printf("This is Release %s:  Test 1a\n", CURRENT_REL);
     GET_TIME_OF_DAY(&time1);

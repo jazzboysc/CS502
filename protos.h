@@ -30,8 +30,11 @@ void   TimerInterrupt();
 void   SVCTerminateProcess(SYSTEM_CALL_DATA* SystemCallData);
 void   SVCCreateProcess(SYSTEM_CALL_DATA* SystemCallData);
 void   SVCStartTimer(SYSTEM_CALL_DATA* SystemCallData);
-void   RemoveFromTimerQueue();
-void   AddToTimerQueue(PCB* pcb);
+void   RemoveFromRunningListByID(long processID);
+void   RemoveFromTimerQueueByID(long processID);
+void   RemoveFromReadyQueueByID(long processID);
+void   PopFromTimerQueue();
+void   PushToTimerQueue(PCB* pcb);
 void   OSCreateProcess(char* name, ProcessEntry entry, int priority, long* reg1, long* reg2);
 
 //                     ENTRIES in sample.c

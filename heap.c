@@ -128,3 +128,21 @@ void HeapPop(Heap* heap, HeapItem* dst)
     }
 }
 //****************************************************************************
+void HeapRemove(Heap* heap, int i, HeapItem* dst)
+{
+    assert( heap && dst );
+    assert( i >= 1 && i <= heap->size );
+
+    *dst = heap->buffer[i];
+    if( i == heap->size )
+    {
+        heap->size--;
+    }
+    else
+    {
+        heap->buffer[i] = heap->buffer[heap->size];
+        heap->size--;
+        HeapAdjust(heap, i);
+    }
+}
+//****************************************************************************

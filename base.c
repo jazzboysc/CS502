@@ -40,7 +40,7 @@ extern INT16         Z502_PAGE_TBL_LENGTH;
 extern Z502CONTEXT*  Z502_CURRENT_CONTEXT;
 
 // OS global variables.
-List* RunningProcesses;
+List* RunningList;
 MinPriQueue* TimerQueue;
 MinPriQueue* ReadyQueue;
 
@@ -152,7 +152,7 @@ void    svc( SYSTEM_CALL_DATA *SystemCallData ) {
         break;
 
     case SYSNUM_TERMINATE_PROCESS:
-        Z502Halt();
+        SVCTerminateProcess(SystemCallData);
         break;
 
     default:
@@ -197,7 +197,7 @@ void    osInit( int argc, char *argv[]  ) {
     }                   /* This routine should never return!!           */
 
     // Init OS global variables.
-    RunningProcesses = calloc(1, sizeof(List));
+    RunningList = calloc(1, sizeof(List));
     TimerQueue = calloc(1, sizeof(MinPriQueue));
     MinPriQueueInit(TimerQueue, MAX_PROCESS_NUM);
     ReadyQueue = calloc(1, sizeof(MinPriQueue));
@@ -209,9 +209,9 @@ void    osInit( int argc, char *argv[]  ) {
 //****************************************************************************
 int GetProcessCount()
 {
-    if( RunningProcesses )
+    if( RunningList )
     {
-        return RunningProcesses->count;
+        return RunningList->count;
     }
 
     return 0;
@@ -219,7 +219,7 @@ int GetProcessCount()
 //****************************************************************************
 PCB* GetPCBByID(long processID)
 {
-    ListNode* currentNode = RunningProcesses->head;
+    ListNode* currentNode = RunningList->head;
     while( currentNode )
     {
         if( ((PCB*)currentNode->data)->processID == processID )
@@ -234,7 +234,7 @@ PCB* GetPCBByID(long processID)
 //****************************************************************************
 PCB* GetPCBByName(char* name)
 {
-    ListNode* currentNode = RunningProcesses->head;
+    ListNode* currentNode = RunningList->head;
     while( currentNode )
     {
         if( strcmp(((PCB*)currentNode->data)->name, name) == 0 )
@@ -249,7 +249,7 @@ PCB* GetPCBByName(char* name)
 //****************************************************************************
 PCB* GetPCBByContext(void* context)
 {
-    ListNode* currentNode = RunningProcesses->head;
+    ListNode* currentNode = RunningList->head;
     while( currentNode )
     {
         if( ((PCB*)currentNode->data)->context == context )
@@ -264,19 +264,35 @@ PCB* GetPCBByContext(void* context)
 //****************************************************************************
 void TimerInterrupt()
 {
-    RemoveFromTimerQueue();
+    PopFromTimerQueue();
 }
 //****************************************************************************
 void SVCTerminateProcess(SYSTEM_CALL_DATA* SystemCallData)
 {
     long processID = *(long*)SystemCallData->Argument[0];
-    PCB* pcb = GetPCBByID(processID);
-    if( !pcb )
+    if( processID == -1 )
     {
-        *(long*)SystemCallData->Argument[1] = 
-            ERR_TERMINATE_PROCESS_ID_NOT_FOUND;
+        // Terminate all processes.
     }
-    Z502DestroyContext(&pcb->context);
+    else
+    {
+        PCB* pcb = GetPCBByID(processID);
+        if( !pcb )
+        {
+            *(long*)SystemCallData->Argument[1] =
+                ERR_TERMINATE_PROCESS_ID_NOT_FOUND;
+            return;
+        }
+
+        // Remove from global list and queues.
+        RemoveFromRunningListByID(processID);
+        RemoveFromTimerQueueByID(processID);
+        RemoveFromReadyQueueByID(processID);
+
+        Z502DestroyContext(&pcb->context);
+        free(pcb);
+    }
+    Z502Halt();
 }
 //****************************************************************************
 void SVCCreateProcess(SYSTEM_CALL_DATA* SystemCallData)
@@ -303,7 +319,7 @@ void SVCStartTimer(SYSTEM_CALL_DATA* SystemCallData)
     sleepTime = *(INT32*)SystemCallData->Argument[0];
     pcb->timerQueueKey = currentTime + sleepTime;
 
-    AddToTimerQueue(pcb);
+    PushToTimerQueue(pcb);
 
     CALL(MEM_READ(Z502TimerStatus, &Status));
     if( Status == DEVICE_FREE )
@@ -329,13 +345,67 @@ void SVCStartTimer(SYSTEM_CALL_DATA* SystemCallData)
     Z502Idle();
 }
 //****************************************************************************
-void RemoveFromTimerQueue()
+void RemoveFromRunningListByID(long processID)
+{
+    ListNode* currentNode = RunningList->head;
+    if( ((PCB*)currentNode->data)->processID == processID )
+    {
+        free(RunningList->head);
+        RunningList->head = 0;
+        currentNode = 0;
+    }
+
+    ListNode* prevNode = currentNode;
+    currentNode = currentNode->next;
+    while( currentNode )
+    {
+        if( ((PCB*)currentNode->data)->processID == processID )
+        {
+            prevNode->next = currentNode->next;
+            free(currentNode);
+            break;
+        }
+        currentNode = currentNode->next;
+    }
+
+    return;
+}
+//****************************************************************************
+void RemoveFromTimerQueueByID(long processID)
+{
+    for( int i = 1; i <= TimerQueue->heap.size; ++i )
+    {
+        HeapItem* item = &(TimerQueue->heap.buffer[i]);
+        if( ((PCB*)item->data)->processID == processID )
+        {
+            HeapItem temp;
+            MinPriQueueRemove(TimerQueue, i, &temp);
+            break;
+        }
+    }
+}
+//****************************************************************************
+void RemoveFromReadyQueueByID(long processID)
+{
+    for( int i = 1; i <= ReadyQueue->heap.size; ++i )
+    {
+        HeapItem* item = &(ReadyQueue->heap.buffer[i]);
+        if( ((PCB*)item->data)->processID == processID )
+        {
+            HeapItem temp;
+            MinPriQueueRemove(ReadyQueue, i, &temp);
+            break;
+        }
+    }
+}
+//****************************************************************************
+void PopFromTimerQueue()
 {
     HeapItem item;
     MinPriQueuePop(TimerQueue, &item);
 }
 //****************************************************************************
-void AddToTimerQueue(PCB* pcb)
+void PushToTimerQueue(PCB* pcb)
 {
     MinPriQueuePush(TimerQueue, pcb->timerQueueKey, pcb);
 }
@@ -387,13 +457,19 @@ void OSCreateProcess(char* name, ProcessEntry entry, int priority, long* dstID,
     pcb->processID = ++CurrentProcessID;
 
     // Return process id to the caller.
-    *dstID = pcb->processID;
-    *dstErr = ERR_SUCCESS;
+    if( dstID )
+    {
+        *dstID = pcb->processID;
+    }
+    if( dstErr )
+    {
+        *dstErr = ERR_SUCCESS;
+    }
 
     // Add to global process list.
     ListNode* pcbNode = calloc(1, sizeof(ListNode));
     pcbNode->data = (void*)pcb;
-    ListAttach(RunningProcesses, pcbNode);
+    ListAttach(RunningList, pcbNode);
 
     // Add tp ready queue.
     MinPriQueuePush(ReadyQueue, priority, pcb);

@@ -82,6 +82,12 @@ void MaxPriQueuePush(MaxPriQueue* queue, int key, void* data)
     HeapPush(&queue->heap, key, data);
 }
 //****************************************************************************
+void MaxPriQueueRemove(MaxPriQueue* queue, int i, HeapItem* dst)
+{
+    assert(queue);
+    HeapRemove(&queue->heap, i, dst);
+}
+//****************************************************************************
 
 void MinPriQueueInit(MinPriQueue* queue, int capacity)
 {
@@ -107,5 +113,11 @@ void MinPriQueuePush(MinPriQueue* queue, int key, void* data)
 {
     assert( queue );
     HeapPush(&queue->heap, key, data);
+}
+//****************************************************************************
+void MinPriQueueRemove(MinPriQueue* queue, int i, HeapItem* dst)
+{
+    assert( queue );
+    HeapRemove(&queue->heap, i, dst);
 }
 //****************************************************************************
