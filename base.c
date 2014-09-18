@@ -143,6 +143,10 @@ void    svc( SYSTEM_CALL_DATA *SystemCallData ) {
         *(INT32*)SystemCallData->Argument[0] = Time;
         break;
 
+    case SYSNUM_GET_PROCESS_ID:
+        SVCGetProcessID(SystemCallData);
+        break;
+
     case SYSNUM_CREATE_PROCESS:
         SVCCreateProcess(SystemCallData);
         break;
@@ -269,6 +273,35 @@ void TimerInterrupt()
     PushToReadyQueue(pcb);
 }
 //****************************************************************************
+void SVCGetProcessID(SYSTEM_CALL_DATA* SystemCallData)
+{
+    size_t nameLen = strlen((char*)SystemCallData->Argument[0]);
+    if( nameLen == 0 )
+    {
+        // Find caller's PCB.
+        void* currentContext = (void*)Z502_CURRENT_CONTEXT;
+        PCB* pcb = GetPCBByContext(currentContext);
+
+        long processID = pcb->processID;
+        *(long*)SystemCallData->Argument[1] = processID;
+        *(long*)SystemCallData->Argument[2] = ERR_SUCCESS;
+    }
+    else
+    {
+        PCB* pcb = GetPCBByName((char*)SystemCallData->Argument[0]);
+        if( pcb )
+        {
+            long processID = pcb->processID;
+            *(long*)SystemCallData->Argument[1] = processID;
+            *(long*)SystemCallData->Argument[2] = ERR_SUCCESS;
+        }
+        else
+        {
+            *(long*)SystemCallData->Argument[2] = ERR_PROCESS_ID_NOT_FOUND;
+        }
+    }
+}
+//****************************************************************************
 void SVCTerminateProcess(SYSTEM_CALL_DATA* SystemCallData)
 {
     if( (INT32)SystemCallData->Argument[0] == -2 )
@@ -287,6 +320,7 @@ void SVCTerminateProcess(SYSTEM_CALL_DATA* SystemCallData)
         }
 
         ListRelease(RunningList);
+        Z502Halt();
     }
     else if( (INT32)SystemCallData->Argument[0] == -1 )
     {
@@ -303,6 +337,11 @@ void SVCTerminateProcess(SYSTEM_CALL_DATA* SystemCallData)
         RemoveFromReadyQueueByID(processID);
 
         free(pcb);
+
+        if( processID == 1 )
+        {
+            Z502Halt();
+        }
     }
     else
     {
@@ -314,7 +353,7 @@ void SVCTerminateProcess(SYSTEM_CALL_DATA* SystemCallData)
         if( !pcb )
         {
             *(long*)SystemCallData->Argument[1] =
-                ERR_TERMINATE_PROCESS_ID_NOT_FOUND;
+                ERR_PROCESS_ID_NOT_FOUND;
             return;
         }
 
@@ -331,8 +370,6 @@ void SVCTerminateProcess(SYSTEM_CALL_DATA* SystemCallData)
     {
         *(long*)SystemCallData->Argument[1] = ERR_SUCCESS;
     }
-
-    Z502Halt();
 }
 //****************************************************************************
 void SVCCreateProcess(SYSTEM_CALL_DATA* SystemCallData)

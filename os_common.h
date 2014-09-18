@@ -13,7 +13,7 @@
 #define ERR_CREAT_PROCESS_ILLEGAL_NAME      23L
 #define ERR_CREAT_PROCESS_ILLEGAL_ENTRY     24L
 #define ERR_CREAT_PROCESS_REACH_MAX_NUM     25L
-#define ERR_TERMINATE_PROCESS_ID_NOT_FOUND  30L
+#define ERR_PROCESS_ID_NOT_FOUND            30L
 
 typedef void(*ProcessEntry)(void);
 
