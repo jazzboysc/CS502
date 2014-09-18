@@ -1,6 +1,24 @@
 #include "list.h"
 
 //****************************************************************************
+void ListRelease(List* list)
+{
+    if( list )
+    {
+        ListNode* current = list->head;
+        ListNode* next = current->next;
+        free(current);
+        list->head = 0;
+
+        while( next )
+        {
+            current = next;
+            next = current->next;
+            free(current);
+        }
+    }
+}
+//****************************************************************************
 void ListAttach(List* list, ListNode* node)
 {
     if( !list->head )

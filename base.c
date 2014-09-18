@@ -203,7 +203,7 @@ void    osInit( int argc, char *argv[]  ) {
     ReadyQueue = calloc(1, sizeof(MinPriQueue));
     MinPriQueueInit(ReadyQueue, MAX_PROCESS_NUM);
 
-    OSCreateProcess("test1a", test1a, 10, 0, 0);
+    OSCreateProcess("test1b", test1b, 10, 0, 0);
 }                                               // End of osInit
 
 //****************************************************************************
@@ -264,19 +264,53 @@ PCB* GetPCBByContext(void* context)
 //****************************************************************************
 void TimerInterrupt()
 {
-    PopFromTimerQueue();
+    PCB* pcb = 0;
+    PopFromTimerQueue(&pcb);
+    PushToReadyQueue(pcb);
 }
 //****************************************************************************
 void SVCTerminateProcess(SYSTEM_CALL_DATA* SystemCallData)
 {
-    long processID = *(long*)SystemCallData->Argument[0];
-    if( processID == -1 )
+    if( (INT32)SystemCallData->Argument[0] == -2 )
     {
-        // Terminate all processes.
+        // Terminate all.
+
+        ListNode* currentProcessNode = RunningList->head;
+        for( int i = 0; i < RunningList->count; ++i )
+        {
+            PCB* pcb = (PCB*)currentProcessNode->data;
+
+            RemoveFromTimerQueueByID(pcb->processID);
+            RemoveFromReadyQueueByID(pcb->processID);
+
+            free(pcb);
+        }
+
+        ListRelease(RunningList);
+    }
+    else if( (INT32)SystemCallData->Argument[0] == -1 )
+    {
+        // Terminate myself.
+
+        // Find caller's PCB.
+        void* currentContext = (void*)Z502_CURRENT_CONTEXT;
+        PCB* pcb = GetPCBByContext(currentContext);
+        long processID = pcb->processID;
+
+        // Remove from global list and queues.
+        RemoveFromRunningListByID(processID);
+        RemoveFromTimerQueueByID(processID);
+        RemoveFromReadyQueueByID(processID);
+
+        free(pcb);
     }
     else
     {
+        // Terminate by id.
+
+        long processID = *(long*)SystemCallData->Argument[0];
         PCB* pcb = GetPCBByID(processID);
+
         if( !pcb )
         {
             *(long*)SystemCallData->Argument[1] =
@@ -289,17 +323,74 @@ void SVCTerminateProcess(SYSTEM_CALL_DATA* SystemCallData)
         RemoveFromTimerQueueByID(processID);
         RemoveFromReadyQueueByID(processID);
 
-        Z502DestroyContext(&pcb->context);
+        //Z502DestroyContext(&pcb->context);
         free(pcb);
     }
+
+    if( SystemCallData->Argument[1] )
+    {
+        *(long*)SystemCallData->Argument[1] = ERR_SUCCESS;
+    }
+
     Z502Halt();
 }
 //****************************************************************************
 void SVCCreateProcess(SYSTEM_CALL_DATA* SystemCallData)
 {
+    long* dstErr = (long*)SystemCallData->Argument[4];
+
+    int processCount = GetProcessCount();
+    if( processCount > MAX_PROCESS_NUM )
+    {
+        if( dstErr )
+        {
+            *dstErr = ERR_CREAT_PROCESS_REACH_MAX_NUM;
+        }
+        return;
+    }
+
+    if( (INT32)SystemCallData->Argument[2] == ILLEGAL_PRIORITY )
+    {
+        if( dstErr )
+        {
+            *dstErr = ERR_CREAT_PROCESS_ILLEGAL_PRIORITY;
+        }
+        return;
+    }
+
+    char* name = (char*)SystemCallData->Argument[0];
+    if( !name )
+    {
+        if( dstErr )
+        {
+            *dstErr = ERR_CREAT_PROCESS_ILLEGAL_NAME;
+        }
+        return;
+    }
+
+    PCB* oldPcb = GetPCBByName(name);
+    if( oldPcb )
+    {
+        if( dstErr )
+        {
+            *dstErr = ERR_CREAT_PROCESS_ILLEGAL_NAME;
+        }
+        return;
+    }
+
+    ProcessEntry entry = (ProcessEntry)SystemCallData->Argument[1];
+    if( !entry )
+    {
+        if( dstErr )
+        {
+            *dstErr = ERR_CREAT_PROCESS_ILLEGAL_ENTRY;
+        }
+        return;
+    }
+
     OSCreateProcess((char*)SystemCallData->Argument[0],
                     (ProcessEntry)SystemCallData->Argument[1],
-                    *(int*)SystemCallData->Argument[2],
+                    (int)SystemCallData->Argument[2],
                     (long*)SystemCallData->Argument[3],
                     (long*)SystemCallData->Argument[4]);
 }
@@ -316,9 +407,10 @@ void SVCStartTimer(SYSTEM_CALL_DATA* SystemCallData)
     PCB* pcb = GetPCBByContext(currentContext);
 
     CALL(MEM_READ(Z502ClockStatus, &currentTime));
-    sleepTime = *(INT32*)SystemCallData->Argument[0];
+    sleepTime = (INT32)SystemCallData->Argument[0];
     pcb->timerQueueKey = currentTime + sleepTime;
 
+    RemoveFromReadyQueueByID(pcb->processID);
     PushToTimerQueue(pcb);
 
     CALL(MEM_READ(Z502TimerStatus, &Status));
@@ -399,10 +491,11 @@ void RemoveFromReadyQueueByID(long processID)
     }
 }
 //****************************************************************************
-void PopFromTimerQueue()
+void PopFromTimerQueue(PCB** ppcb)
 {
     HeapItem item;
     MinPriQueuePop(TimerQueue, &item);
+    *ppcb = (PCB*)item.data;
 }
 //****************************************************************************
 void PushToTimerQueue(PCB* pcb)
@@ -410,46 +503,27 @@ void PushToTimerQueue(PCB* pcb)
     MinPriQueuePush(TimerQueue, pcb->timerQueueKey, pcb);
 }
 //****************************************************************************
+void PopFromReadyQueue(PCB** ppcb)
+{
+    HeapItem item;
+    MinPriQueuePop(ReadyQueue, &item);
+    *ppcb = (PCB*)item.data;
+}
+//****************************************************************************
+void PushToReadyQueue(PCB* pcb)
+{
+    MinPriQueuePush(ReadyQueue, pcb->readyQueueKey, pcb);
+}
+//****************************************************************************
 void OSCreateProcess(char* name, ProcessEntry entry, int priority, long* dstID,
     long* dstErr)
 {
     static long CurrentProcessID = 0;
 
-    int processCount = GetProcessCount();
-    if( processCount > MAX_PROCESS_NUM )
-    {
-        *dstErr = ERR_CREAT_PROCESS_REACH_MAX_NUM;
-        return;
-    }
-
-    if( priority == ILLEGAL_PRIORITY )
-    {
-        *dstErr = ERR_CREAT_PROCESS_ILLEGAL_PRIORITY;
-        return;
-    }
-
-    if( !name )
-    {
-        *dstErr = ERR_CREAT_PROCESS_ILLEGAL_NAME;
-        return;
-    }
-
-    PCB* oldPcb = GetPCBByName(name);
-    if( oldPcb )
-    {
-        *dstErr = ERR_CREAT_PROCESS_ILLEGAL_NAME;
-        return;
-    }
-
-    if( !entry )
-    {
-        *dstErr = ERR_CREAT_PROCESS_ILLEGAL_ENTRY;
-        return;
-    }
-
     PCB* pcb = calloc(1, sizeof(PCB));
     pcb->entry = entry;
     pcb->priority = priority;
+    pcb->readyQueueKey = priority;
     size_t len = strlen(name);
     pcb->name = malloc(len + 1);
     strcpy(pcb->name, name);
@@ -471,7 +545,7 @@ void OSCreateProcess(char* name, ProcessEntry entry, int priority, long* dstID,
     pcbNode->data = (void*)pcb;
     ListAttach(RunningList, pcbNode);
 
-    // Add tp ready queue.
+    // Add to ready queue.
     MinPriQueuePush(ReadyQueue, priority, pcb);
    
     Z502MakeContext(&pcb->context, (void*)entry, USER_MODE);

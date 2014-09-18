@@ -18,6 +18,7 @@ typedef struct _List
     int count;
 } List;
 
+void ListRelease(List* list);
 void ListAttach(List* list, ListNode* node);
 
 #endif
