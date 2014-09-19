@@ -31,14 +31,14 @@ void   SVCGetProcessID(SYSTEM_CALL_DATA* SystemCallData);
 void   SVCTerminateProcess(SYSTEM_CALL_DATA* SystemCallData);
 void   SVCCreateProcess(SYSTEM_CALL_DATA* SystemCallData);
 void   SVCStartTimer(SYSTEM_CALL_DATA* SystemCallData);
-void   RemoveFromRunningListByID(long processID);
+void   RemovePCBFromRunningListByID(long processID);
 void   RemoveFromTimerQueueByID(long processID);
 void   RemoveFromReadyQueueByID(long processID);
 void   PopFromTimerQueue(PCB** ppcb);
 void   PushToTimerQueue(PCB* pcb);
 void   PopFromReadyQueue(PCB** ppcb);
 void   PushToReadyQueue(PCB* pcb);
-void   OSCreateProcess(char* name, ProcessEntry entry, int priority, long* reg1, long* reg2);
+PCB*   OSCreateProcess(char* name, ProcessEntry entry, int priority, long* reg1, long* reg2);
 
 //                     ENTRIES in sample.c
 

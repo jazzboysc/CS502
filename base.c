@@ -207,7 +207,8 @@ void    osInit( int argc, char *argv[]  ) {
     ReadyQueue = calloc(1, sizeof(MinPriQueue));
     MinPriQueueInit(ReadyQueue, MAX_PROCESS_NUM);
 
-    OSCreateProcess("test1b", test1b, 10, 0, 0);
+    PCB* pcb = OSCreateProcess("test1b", test1b, 10, 0, 0);
+    Z502SwitchContext(SWITCH_CONTEXT_KILL_MODE, &pcb->context);
 }                                               // End of osInit
 
 //****************************************************************************
@@ -317,6 +318,8 @@ void SVCTerminateProcess(SYSTEM_CALL_DATA* SystemCallData)
             RemoveFromReadyQueueByID(pcb->processID);
 
             free(pcb);
+
+            currentProcessNode = currentProcessNode->next;
         }
 
         ListRelease(RunningList);
@@ -332,9 +335,9 @@ void SVCTerminateProcess(SYSTEM_CALL_DATA* SystemCallData)
         long processID = pcb->processID;
 
         // Remove from global list and queues.
-        RemoveFromRunningListByID(processID);
         RemoveFromTimerQueueByID(processID);
         RemoveFromReadyQueueByID(processID);
+        RemovePCBFromRunningListByID(processID);
 
         free(pcb);
 
@@ -347,7 +350,7 @@ void SVCTerminateProcess(SYSTEM_CALL_DATA* SystemCallData)
     {
         // Terminate by id.
 
-        long processID = *(long*)SystemCallData->Argument[0];
+        long processID = (long)SystemCallData->Argument[0];
         PCB* pcb = GetPCBByID(processID);
 
         if( !pcb )
@@ -358,9 +361,9 @@ void SVCTerminateProcess(SYSTEM_CALL_DATA* SystemCallData)
         }
 
         // Remove from global list and queues.
-        RemoveFromRunningListByID(processID);
         RemoveFromTimerQueueByID(processID);
         RemoveFromReadyQueueByID(processID);
+        RemovePCBFromRunningListByID(processID);
 
         //Z502DestroyContext(&pcb->context);
         free(pcb);
@@ -377,7 +380,7 @@ void SVCCreateProcess(SYSTEM_CALL_DATA* SystemCallData)
     long* dstErr = (long*)SystemCallData->Argument[4];
 
     int processCount = GetProcessCount();
-    if( processCount > MAX_PROCESS_NUM )
+    if( processCount >= MAX_PROCESS_NUM )
     {
         if( dstErr )
         {
@@ -474,7 +477,7 @@ void SVCStartTimer(SYSTEM_CALL_DATA* SystemCallData)
     Z502Idle();
 }
 //****************************************************************************
-void RemoveFromRunningListByID(long processID)
+void RemovePCBFromRunningListByID(long processID)
 {
     ListNode* currentNode = RunningList->head;
     if( ((PCB*)currentNode->data)->processID == processID )
@@ -482,6 +485,9 @@ void RemoveFromRunningListByID(long processID)
         free(RunningList->head);
         RunningList->head = 0;
         currentNode = 0;
+        RunningList->count--;
+
+        return;
     }
 
     ListNode* prevNode = currentNode;
@@ -492,6 +498,7 @@ void RemoveFromRunningListByID(long processID)
         {
             prevNode->next = currentNode->next;
             free(currentNode);
+            RunningList->count--;
             break;
         }
         currentNode = currentNode->next;
@@ -552,7 +559,7 @@ void PushToReadyQueue(PCB* pcb)
     MinPriQueuePush(ReadyQueue, pcb->readyQueueKey, pcb);
 }
 //****************************************************************************
-void OSCreateProcess(char* name, ProcessEntry entry, int priority, long* dstID,
+PCB* OSCreateProcess(char* name, ProcessEntry entry, int priority, long* dstID,
     long* dstErr)
 {
     static long CurrentProcessID = 0;
@@ -586,6 +593,7 @@ void OSCreateProcess(char* name, ProcessEntry entry, int priority, long* dstID,
     MinPriQueuePush(ReadyQueue, priority, pcb);
    
     Z502MakeContext(&pcb->context, (void*)entry, USER_MODE);
-    Z502SwitchContext(SWITCH_CONTEXT_KILL_MODE, &pcb->context);
+
+    return pcb;
 }
 //****************************************************************************
