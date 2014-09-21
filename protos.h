@@ -17,7 +17,6 @@ protos.h
 #define  PROTOS_H
 
 #include     "syscalls.h"
-#include     "os_common.h"
 
 //                      ENTRIES in base.c
 
@@ -25,20 +24,6 @@ void   interrupt_handler( void );
 void   fault_handler( void );
 void   svc( SYSTEM_CALL_DATA * );
 void   osInit (int argc, char *argv[] );
-
-void   TimerInterrupt();
-void   SVCGetProcessID(SYSTEM_CALL_DATA* SystemCallData);
-void   SVCTerminateProcess(SYSTEM_CALL_DATA* SystemCallData);
-void   SVCCreateProcess(SYSTEM_CALL_DATA* SystemCallData);
-void   SVCStartTimer(SYSTEM_CALL_DATA* SystemCallData);
-void   RemovePCBFromRunningListByID(long processID);
-void   RemoveFromTimerQueueByID(long processID);
-void   RemoveFromReadyQueueByID(long processID);
-void   PopFromTimerQueue(PCB** ppcb);
-void   PushToTimerQueue(PCB* pcb);
-void   PopFromReadyQueue(PCB** ppcb);
-void   PushToReadyQueue(PCB* pcb);
-PCB*   OSCreateProcess(char* name, ProcessEntry entry, int priority, long* reg1, long* reg2);
 
 //                     ENTRIES in sample.c
 

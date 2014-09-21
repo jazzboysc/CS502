@@ -12,6 +12,9 @@
     <Filter Include="Util">
       <UniqueIdentifier>{76c999b1-e326-40a9-b510-fb5bd09526fe}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Modules">
+      <UniqueIdentifier>{e3503093-0c66-462d-8ca4-34b8656f5ddc}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="global.h">
@@ -38,11 +41,20 @@
     <ClInclude Include="os_common.h">
       <Filter>Util</Filter>
     </ClInclude>
+    <ClInclude Include="process_manager.h">
+      <Filter>Modules</Filter>
+    </ClInclude>
+    <ClInclude Include="svc.h">
+      <Filter>Modules</Filter>
+    </ClInclude>
+    <ClInclude Include="pcb.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="interrupt_handler.h">
+      <Filter>Modules</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="base.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="sample.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -63,6 +75,18 @@
     </ClCompile>
     <ClCompile Include="list.c">
       <Filter>Util</Filter>
+    </ClCompile>
+    <ClCompile Include="process_manager.c">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="svc.c">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="base.c">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="interrupt_handler.c">
+      <Filter>Modules</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
