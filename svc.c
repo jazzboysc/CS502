@@ -3,7 +3,7 @@
 #include "os_common.h"
 #include "process_manager.h"
 
-extern List* RunningList;
+extern List* GlobalProcessList;
 extern MinPriQueue* TimerQueue;
 extern MinPriQueue* ReadyQueue;
 
@@ -43,8 +43,8 @@ void SVCTerminateProcess(SYSTEM_CALL_DATA* SystemCallData)
     {
         // Terminate all.
 
-        ListNode* currentProcessNode = RunningList->head;
-        for( int i = 0; i < RunningList->count; ++i )
+        ListNode* currentProcessNode = GlobalProcessList->head;
+        for( int i = 0; i < GlobalProcessList->count; ++i )
         {
             PCB* pcb = (PCB*)currentProcessNode->data;
 
@@ -56,7 +56,7 @@ void SVCTerminateProcess(SYSTEM_CALL_DATA* SystemCallData)
             currentProcessNode = currentProcessNode->next;
         }
 
-        ListRelease(RunningList);
+        ListRelease(GlobalProcessList);
         Z502Halt();
     }
     else if( (INT32)SystemCallData->Argument[0] == -1 )
@@ -184,28 +184,42 @@ void SVCStartTimer(SYSTEM_CALL_DATA* SystemCallData)
     sleepTime = (INT32)SystemCallData->Argument[0];
     pcb->timerQueueKey = currentTime + sleepTime;
 
+    // Check timer queue to see if there is a process to be awakened earlier.
+    int needRestartTimer = 0;
+    if( TimerQueue->heap.size > 0 )
+    {
+        HeapItem* anotherSleepingProcess = MinPriQueueGetMin(TimerQueue);
+        if( pcb->timerQueueKey < anotherSleepingProcess->key.key )
+        {
+            needRestartTimer = 1;
+        }
+    }
+
     RemoveFromReadyQueueByID(pcb->processID);
     PushToTimerQueue(pcb);
 
     CALL(MEM_READ(Z502TimerStatus, &Status));
     if( Status == DEVICE_FREE )
     {
-        printf("Timer is free\n");
+        printf("SVCStartTimer: Timer is free\n");
     }
     else
     {
-        printf("Timer is busy\n");
+        printf("SVCStartTimer: Timer is busy\n");
     }
 
-    CALL(MEM_WRITE(Z502TimerStart, &sleepTime));
-    CALL(MEM_READ(Z502TimerStatus, &Status));
-    if( Status == DEVICE_IN_USE )
+    if( needRestartTimer == 1 )
     {
-        printf("Timer started\n");
-    }
-    else
-    {
-        printf("Unable to start timer\n");
+        CALL(MEM_WRITE(Z502TimerStart, &sleepTime));
+        CALL(MEM_READ(Z502TimerStatus, &Status));
+        if( Status == DEVICE_IN_USE )
+        {
+            printf("SVCStartTimer: Timer started\n");
+        }
+        else
+        {
+            printf("SVCStartTimer: Unable to start timer\n");
+        }
     }
 
     Z502Idle();

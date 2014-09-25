@@ -1,7 +1,7 @@
 #include "process_manager.h"
 #include "os_common.h"
 
-List* RunningList;
+List* GlobalProcessList;
 MinPriQueue* TimerQueue;
 MinPriQueue* ReadyQueue;
 
@@ -9,7 +9,7 @@ MinPriQueue* ReadyQueue;
 void ProcessManagerInit()
 {
     // Init OS global variables.
-    RunningList = calloc(1, sizeof(List));
+    GlobalProcessList = calloc(1, sizeof(List));
     TimerQueue = calloc(1, sizeof(MinPriQueue));
     MinPriQueueInit(TimerQueue, MAX_PROCESS_NUM);
     ReadyQueue = calloc(1, sizeof(MinPriQueue));
@@ -18,9 +18,9 @@ void ProcessManagerInit()
 //****************************************************************************
 int GetProcessCount()
 {
-    if( RunningList )
+    if( GlobalProcessList )
     {
-        return RunningList->count;
+        return GlobalProcessList->count;
     }
 
     return 0;
@@ -28,7 +28,7 @@ int GetProcessCount()
 //****************************************************************************
 PCB* GetPCBByID(long processID)
 {
-    ListNode* currentNode = RunningList->head;
+    ListNode* currentNode = GlobalProcessList->head;
     while( currentNode )
     {
         if( ((PCB*)currentNode->data)->processID == processID )
@@ -43,7 +43,7 @@ PCB* GetPCBByID(long processID)
 //****************************************************************************
 PCB* GetPCBByName(char* name)
 {
-    ListNode* currentNode = RunningList->head;
+    ListNode* currentNode = GlobalProcessList->head;
     while( currentNode )
     {
         if( strcmp(((PCB*)currentNode->data)->name, name) == 0 )
@@ -58,7 +58,7 @@ PCB* GetPCBByName(char* name)
 //****************************************************************************
 PCB* GetPCBByContext(void* context)
 {
-    ListNode* currentNode = RunningList->head;
+    ListNode* currentNode = GlobalProcessList->head;
     while( currentNode )
     {
         if( ((PCB*)currentNode->data)->context == context )
@@ -73,13 +73,13 @@ PCB* GetPCBByContext(void* context)
 //****************************************************************************
 void RemovePCBFromRunningListByID(long processID)
 {
-    ListNode* currentNode = RunningList->head;
+    ListNode* currentNode = GlobalProcessList->head;
     if( ((PCB*)currentNode->data)->processID == processID )
     {
-        free(RunningList->head);
-        RunningList->head = 0;
+        free(GlobalProcessList->head);
+        GlobalProcessList->head = 0;
         currentNode = 0;
-        RunningList->count--;
+        GlobalProcessList->count--;
 
         return;
     }
@@ -92,7 +92,7 @@ void RemovePCBFromRunningListByID(long processID)
         {
             prevNode->next = currentNode->next;
             free(currentNode);
-            RunningList->count--;
+            GlobalProcessList->count--;
             break;
         }
         currentNode = currentNode->next;
@@ -181,7 +181,7 @@ PCB* OSCreateProcess(char* name, ProcessEntry entry, int priority, long* dstID,
     // Add to global process list.
     ListNode* pcbNode = calloc(1, sizeof(ListNode));
     pcbNode->data = (void*)pcb;
-    ListAttach(RunningList, pcbNode);
+    ListAttach(GlobalProcessList, pcbNode);
 
     // Add to ready queue.
     MinPriQueuePush(ReadyQueue, priority, pcb);

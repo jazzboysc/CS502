@@ -53,6 +53,9 @@
     <ClInclude Include="interrupt_handler.h">
       <Filter>Modules</Filter>
     </ClInclude>
+    <ClInclude Include="scheduler.h">
+      <Filter>Modules</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="sample.c">
@@ -86,6 +89,9 @@
       <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="interrupt_handler.c">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="scheduler.c">
       <Filter>Modules</Filter>
     </ClCompile>
   </ItemGroup>

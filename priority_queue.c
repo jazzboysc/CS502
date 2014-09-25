@@ -62,7 +62,7 @@ void MaxPriQueueInit(MaxPriQueue* queue, int capacity)
     HeapInit(&(*queue).heap, capacity, MaxPriQueueCompare, 1);
 }
 //****************************************************************************
-HeapItem* GetPriQueueMax(MaxPriQueue* queue)
+HeapItem* MaxPriQueueGetMax(MaxPriQueue* queue)
 {
     assert( queue );
     assert( queue->heap.size >= 1 );
@@ -95,7 +95,7 @@ void MinPriQueueInit(MinPriQueue* queue, int capacity)
     HeapInit(&(*queue).heap, capacity, MinPriQueueCompare, 0);
 }
 //****************************************************************************
-HeapItem* GetPriQueueMin(MinPriQueue* queue)
+HeapItem* MinPriQueueGetMin(MinPriQueue* queue)
 {
     assert( queue );
     assert( queue->heap.size >= 1 );
