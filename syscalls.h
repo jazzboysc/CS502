@@ -25,6 +25,7 @@
 #define  SYSCALLS_H
 
 #include        "stdio.h"
+#include        "global.h"
 
 /* Definition of System Call numbers                        */
 
@@ -57,7 +58,7 @@ typedef struct    {
 } SYSTEM_CALL_DATA;
 
 
-extern void ChargeTimeAndCheckEvents(INT32);
+extern void ChargeTimeAndCheckEvents(INT32 time_to_charge);
 extern int BaseThread();
 
 #ifndef COST_OF_CALL

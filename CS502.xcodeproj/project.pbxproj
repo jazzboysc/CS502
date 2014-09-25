@@ -7,11 +7,18 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		A0FC42FA19B9325300111675 /* base.c in Sources */ = {isa = PBXBuildFile; fileRef = A0FC42F119B9325300111675 /* base.c */; };
-		A0FC42FB19B9325300111675 /* sample.c in Sources */ = {isa = PBXBuildFile; fileRef = A0FC42F419B9325300111675 /* sample.c */; };
-		A0FC42FC19B9325300111675 /* state_printer.c in Sources */ = {isa = PBXBuildFile; fileRef = A0FC42F519B9325300111675 /* state_printer.c */; };
-		A0FC42FD19B9325300111675 /* test.c in Sources */ = {isa = PBXBuildFile; fileRef = A0FC42F719B9325300111675 /* test.c */; };
-		A0FC42FE19B9325300111675 /* z502.c in Sources */ = {isa = PBXBuildFile; fileRef = A0FC42F819B9325300111675 /* z502.c */; };
+		A034A06819D4CA2700A151A1 /* base.c in Sources */ = {isa = PBXBuildFile; fileRef = A034A05A19D4CA2700A151A1 /* base.c */; };
+		A034A06919D4CA2700A151A1 /* heap.c in Sources */ = {isa = PBXBuildFile; fileRef = A034A05C19D4CA2700A151A1 /* heap.c */; };
+		A034A06A19D4CA2700A151A1 /* interrupt_handler.c in Sources */ = {isa = PBXBuildFile; fileRef = A034A05E19D4CA2700A151A1 /* interrupt_handler.c */; };
+		A034A06B19D4CA2700A151A1 /* list.c in Sources */ = {isa = PBXBuildFile; fileRef = A034A06019D4CA2700A151A1 /* list.c */; };
+		A034A06C19D4CA2700A151A1 /* priority_queue.c in Sources */ = {isa = PBXBuildFile; fileRef = A034A06419D4CA2700A151A1 /* priority_queue.c */; };
+		A034A06D19D4CA2700A151A1 /* process_manager.c in Sources */ = {isa = PBXBuildFile; fileRef = A034A06619D4CA2700A151A1 /* process_manager.c */; };
+		A034A07919D4CAD800A151A1 /* sample.c in Sources */ = {isa = PBXBuildFile; fileRef = A034A06F19D4CAD800A151A1 /* sample.c */; };
+		A034A07A19D4CAD800A151A1 /* scheduler.c in Sources */ = {isa = PBXBuildFile; fileRef = A034A07019D4CAD800A151A1 /* scheduler.c */; };
+		A034A07B19D4CAD800A151A1 /* state_printer.c in Sources */ = {isa = PBXBuildFile; fileRef = A034A07219D4CAD800A151A1 /* state_printer.c */; };
+		A034A07C19D4CAD800A151A1 /* svc.c in Sources */ = {isa = PBXBuildFile; fileRef = A034A07319D4CAD800A151A1 /* svc.c */; };
+		A034A07D19D4CAD800A151A1 /* test.c in Sources */ = {isa = PBXBuildFile; fileRef = A034A07619D4CAD800A151A1 /* test.c */; };
+		A034A07E19D4CAD800A151A1 /* z502.c in Sources */ = {isa = PBXBuildFile; fileRef = A034A07719D4CAD800A151A1 /* z502.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -27,16 +34,32 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		A034A05A19D4CA2700A151A1 /* base.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = base.c; sourceTree = SOURCE_ROOT; };
+		A034A05B19D4CA2700A151A1 /* global.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = global.h; sourceTree = SOURCE_ROOT; };
+		A034A05C19D4CA2700A151A1 /* heap.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = heap.c; sourceTree = SOURCE_ROOT; };
+		A034A05D19D4CA2700A151A1 /* heap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = heap.h; sourceTree = SOURCE_ROOT; };
+		A034A05E19D4CA2700A151A1 /* interrupt_handler.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = interrupt_handler.c; sourceTree = SOURCE_ROOT; };
+		A034A05F19D4CA2700A151A1 /* interrupt_handler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = interrupt_handler.h; sourceTree = SOURCE_ROOT; };
+		A034A06019D4CA2700A151A1 /* list.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = list.c; sourceTree = SOURCE_ROOT; };
+		A034A06119D4CA2700A151A1 /* list.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = list.h; sourceTree = SOURCE_ROOT; };
+		A034A06219D4CA2700A151A1 /* os_common.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = os_common.h; sourceTree = SOURCE_ROOT; };
+		A034A06319D4CA2700A151A1 /* pcb.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = pcb.h; sourceTree = SOURCE_ROOT; };
+		A034A06419D4CA2700A151A1 /* priority_queue.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = priority_queue.c; sourceTree = SOURCE_ROOT; };
+		A034A06519D4CA2700A151A1 /* priority_queue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = priority_queue.h; sourceTree = SOURCE_ROOT; };
+		A034A06619D4CA2700A151A1 /* process_manager.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = process_manager.c; sourceTree = SOURCE_ROOT; };
+		A034A06719D4CA2700A151A1 /* process_manager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = process_manager.h; sourceTree = SOURCE_ROOT; };
+		A034A06E19D4CAD800A151A1 /* protos.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = protos.h; sourceTree = SOURCE_ROOT; };
+		A034A06F19D4CAD800A151A1 /* sample.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = sample.c; sourceTree = SOURCE_ROOT; };
+		A034A07019D4CAD800A151A1 /* scheduler.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = scheduler.c; sourceTree = SOURCE_ROOT; };
+		A034A07119D4CAD800A151A1 /* scheduler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = scheduler.h; sourceTree = SOURCE_ROOT; };
+		A034A07219D4CAD800A151A1 /* state_printer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = state_printer.c; sourceTree = SOURCE_ROOT; };
+		A034A07319D4CAD800A151A1 /* svc.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = svc.c; sourceTree = SOURCE_ROOT; };
+		A034A07419D4CAD800A151A1 /* svc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = svc.h; sourceTree = SOURCE_ROOT; };
+		A034A07519D4CAD800A151A1 /* syscalls.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = syscalls.h; sourceTree = SOURCE_ROOT; };
+		A034A07619D4CAD800A151A1 /* test.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = test.c; sourceTree = SOURCE_ROOT; };
+		A034A07719D4CAD800A151A1 /* z502.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = z502.c; sourceTree = SOURCE_ROOT; };
+		A034A07819D4CAD800A151A1 /* z502.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = z502.h; sourceTree = SOURCE_ROOT; };
 		A0FC42E519B931AD00111675 /* CS502 */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = CS502; sourceTree = BUILT_PRODUCTS_DIR; };
-		A0FC42F119B9325300111675 /* base.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = base.c; sourceTree = "<group>"; };
-		A0FC42F219B9325300111675 /* global.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = global.h; sourceTree = "<group>"; };
-		A0FC42F319B9325300111675 /* protos.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = protos.h; sourceTree = "<group>"; };
-		A0FC42F419B9325300111675 /* sample.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = sample.c; sourceTree = "<group>"; };
-		A0FC42F519B9325300111675 /* state_printer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = state_printer.c; sourceTree = "<group>"; };
-		A0FC42F619B9325300111675 /* syscalls.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = syscalls.h; sourceTree = "<group>"; };
-		A0FC42F719B9325300111675 /* test.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = test.c; sourceTree = "<group>"; };
-		A0FC42F819B9325300111675 /* z502.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = z502.c; sourceTree = "<group>"; };
-		A0FC42F919B9325300111675 /* z502.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = z502.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -50,10 +73,26 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		A034A07F19D4CC2A00A151A1 /* Modules */ = {
+			isa = PBXGroup;
+			children = (
+				A034A05F19D4CA2700A151A1 /* interrupt_handler.h */,
+				A034A05E19D4CA2700A151A1 /* interrupt_handler.c */,
+				A034A07419D4CAD800A151A1 /* svc.h */,
+				A034A06619D4CA2700A151A1 /* process_manager.c */,
+				A034A06719D4CA2700A151A1 /* process_manager.h */,
+				A034A07319D4CAD800A151A1 /* svc.c */,
+				A034A07119D4CAD800A151A1 /* scheduler.h */,
+				A034A07019D4CAD800A151A1 /* scheduler.c */,
+			);
+			name = Modules;
+			sourceTree = "<group>";
+		};
 		A0FC42DC19B931AD00111675 = {
 			isa = PBXGroup;
 			children = (
-				A0FC42E719B931AD00111675 /* CS502 */,
+				A034A07F19D4CC2A00A151A1 /* Modules */,
+				A0FC42E719B931AD00111675 /* Util */,
 				A0FC42E619B931AD00111675 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -66,19 +105,28 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		A0FC42E719B931AD00111675 /* CS502 */ = {
+		A0FC42E719B931AD00111675 /* Util */ = {
 			isa = PBXGroup;
 			children = (
-				A0FC42F119B9325300111675 /* base.c */,
-				A0FC42F219B9325300111675 /* global.h */,
-				A0FC42F319B9325300111675 /* protos.h */,
-				A0FC42F419B9325300111675 /* sample.c */,
-				A0FC42F519B9325300111675 /* state_printer.c */,
-				A0FC42F619B9325300111675 /* syscalls.h */,
-				A0FC42F719B9325300111675 /* test.c */,
-				A0FC42F819B9325300111675 /* z502.c */,
-				A0FC42F919B9325300111675 /* z502.h */,
+				A034A06E19D4CAD800A151A1 /* protos.h */,
+				A034A06F19D4CAD800A151A1 /* sample.c */,
+				A034A07219D4CAD800A151A1 /* state_printer.c */,
+				A034A07519D4CAD800A151A1 /* syscalls.h */,
+				A034A07619D4CAD800A151A1 /* test.c */,
+				A034A07719D4CAD800A151A1 /* z502.c */,
+				A034A07819D4CAD800A151A1 /* z502.h */,
+				A034A05A19D4CA2700A151A1 /* base.c */,
+				A034A05B19D4CA2700A151A1 /* global.h */,
+				A034A05C19D4CA2700A151A1 /* heap.c */,
+				A034A05D19D4CA2700A151A1 /* heap.h */,
+				A034A06019D4CA2700A151A1 /* list.c */,
+				A034A06119D4CA2700A151A1 /* list.h */,
+				A034A06219D4CA2700A151A1 /* os_common.h */,
+				A034A06319D4CA2700A151A1 /* pcb.h */,
+				A034A06419D4CA2700A151A1 /* priority_queue.c */,
+				A034A06519D4CA2700A151A1 /* priority_queue.h */,
 			);
+			name = Util;
 			path = CS502;
 			sourceTree = "<group>";
 		};
@@ -133,11 +181,18 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A0FC42FD19B9325300111675 /* test.c in Sources */,
-				A0FC42FC19B9325300111675 /* state_printer.c in Sources */,
-				A0FC42FE19B9325300111675 /* z502.c in Sources */,
-				A0FC42FB19B9325300111675 /* sample.c in Sources */,
-				A0FC42FA19B9325300111675 /* base.c in Sources */,
+				A034A06A19D4CA2700A151A1 /* interrupt_handler.c in Sources */,
+				A034A07D19D4CAD800A151A1 /* test.c in Sources */,
+				A034A07919D4CAD800A151A1 /* sample.c in Sources */,
+				A034A06D19D4CA2700A151A1 /* process_manager.c in Sources */,
+				A034A07A19D4CAD800A151A1 /* scheduler.c in Sources */,
+				A034A06819D4CA2700A151A1 /* base.c in Sources */,
+				A034A06919D4CA2700A151A1 /* heap.c in Sources */,
+				A034A07B19D4CAD800A151A1 /* state_printer.c in Sources */,
+				A034A07E19D4CAD800A151A1 /* z502.c in Sources */,
+				A034A06B19D4CA2700A151A1 /* list.c in Sources */,
+				A034A07C19D4CAD800A151A1 /* svc.c in Sources */,
+				A034A06C19D4CA2700A151A1 /* priority_queue.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

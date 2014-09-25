@@ -1,4 +1,5 @@
 #include "heap.h"
+#include <limits.h>
 
 //****************************************************************************
 void HeapInit(Heap* heap, int capacity, HeapCompareKey compare, int isMaxHeap)
