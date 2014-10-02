@@ -59,6 +59,7 @@
 		A034A07619D4CAD800A151A1 /* test.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = test.c; sourceTree = SOURCE_ROOT; };
 		A034A07719D4CAD800A151A1 /* z502.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = z502.c; sourceTree = SOURCE_ROOT; };
 		A034A07819D4CAD800A151A1 /* z502.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = z502.h; sourceTree = SOURCE_ROOT; };
+		A0F0080E19DDFFFD00E1C2B0 /* memory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = memory.h; sourceTree = "<group>"; };
 		A0FC42E519B931AD00111675 /* CS502 */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = CS502; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -76,6 +77,7 @@
 		A034A07F19D4CC2A00A151A1 /* Modules */ = {
 			isa = PBXGroup;
 			children = (
+				A034A05A19D4CA2700A151A1 /* base.c */,
 				A034A05F19D4CA2700A151A1 /* interrupt_handler.h */,
 				A034A05E19D4CA2700A151A1 /* interrupt_handler.c */,
 				A034A07419D4CAD800A151A1 /* svc.h */,
@@ -84,6 +86,7 @@
 				A034A07319D4CAD800A151A1 /* svc.c */,
 				A034A07119D4CAD800A151A1 /* scheduler.h */,
 				A034A07019D4CAD800A151A1 /* scheduler.c */,
+				A0F0080E19DDFFFD00E1C2B0 /* memory.h */,
 			);
 			name = Modules;
 			sourceTree = "<group>";
@@ -115,7 +118,6 @@
 				A034A07619D4CAD800A151A1 /* test.c */,
 				A034A07719D4CAD800A151A1 /* z502.c */,
 				A034A07819D4CAD800A151A1 /* z502.h */,
-				A034A05A19D4CA2700A151A1 /* base.c */,
 				A034A05B19D4CA2700A151A1 /* global.h */,
 				A034A05C19D4CA2700A151A1 /* heap.c */,
 				A034A05D19D4CA2700A151A1 /* heap.h */,

@@ -10,29 +10,29 @@
 	<string>CS502</string>
 	<key>IDESourceControlProjectOriginsDictionary</key>
 	<dict>
-		<key>18E049AA-A1BF-4002-9065-296EABAD3FC2</key>
+		<key>33B440BFD58A38C7EED7561FF775E8E2DD93E954</key>
 		<string>https://github.com/jazzboysc/CS502.git</string>
 	</dict>
 	<key>IDESourceControlProjectPath</key>
 	<string>CS502.xcodeproj/project.xcworkspace</string>
 	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
 	<dict>
-		<key>18E049AA-A1BF-4002-9065-296EABAD3FC2</key>
+		<key>33B440BFD58A38C7EED7561FF775E8E2DD93E954</key>
 		<string>../..</string>
 	</dict>
 	<key>IDESourceControlProjectURL</key>
 	<string>https://github.com/jazzboysc/CS502.git</string>
 	<key>IDESourceControlProjectVersion</key>
-	<integer>110</integer>
+	<integer>111</integer>
 	<key>IDESourceControlProjectWCCIdentifier</key>
-	<string>18E049AA-A1BF-4002-9065-296EABAD3FC2</string>
+	<string>33B440BFD58A38C7EED7561FF775E8E2DD93E954</string>
 	<key>IDESourceControlProjectWCConfigurations</key>
 	<array>
 		<dict>
 			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
 			<string>public.vcs.git</string>
 			<key>IDESourceControlWCCIdentifierKey</key>
-			<string>18E049AA-A1BF-4002-9065-296EABAD3FC2</string>
+			<string>33B440BFD58A38C7EED7561FF775E8E2DD93E954</string>
 			<key>IDESourceControlWCCName</key>
 			<string>CS502</string>
 		</dict>
