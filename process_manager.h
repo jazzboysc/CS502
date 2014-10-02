@@ -3,20 +3,52 @@
 
 #include "pcb.h"
 
-void ProcessManagerInit();
+// Process manager function pointers.
+typedef int  (*ProcessManagerGetProcessCount)();
+typedef int  (*ProcessManagerGetTimerQueueProcessCount)();
+typedef PCB* (*ProcessManagerGetTimerQueueProcess)(int i);
+typedef int  (*ProcessManagerGetReadyQueueProcessCount)();
+typedef PCB* (*ProcessManagerGetPCBByID)(long processID);
+typedef PCB* (*ProcessManagerGetPCBByName)(char* name);
+typedef PCB* (*ProcessManagerGetPCBByContext)(void* context);
+typedef void (*ProcessManagerRemovePCBFromRunningListByID)(long processID);
+typedef void (*ProcessManagerRemoveFromTimerQueueByID)(long processID);
+typedef void (*ProcessManagerRemoveFromReadyQueueByID)(long processID);
+typedef void (*ProcessManagerPopFromTimerQueue)(PCB** ppcb);
+typedef void (*ProcessManagerPushToTimerQueue)(PCB* pcb);
+typedef void (*ProcessManagerPopFromReadyQueue)(PCB** ppcb);
+typedef void (*ProcessManagerPushToReadyQueue)(PCB* pcb);
+typedef PCB* (*ProcessManagerCreateProcess)(char* name, int type, ProcessEntry entry, int priority, long* reg1, long* reg2);
+typedef void (*ProcessManagerTerminateAllProcess)();
+typedef void (*ProcessManagerTerminateProcess)(long processID);
 
-int GetProcessCount();
-PCB* GetPCBByID(long processID);
-PCB* GetPCBByName(char* name);
-PCB* GetPCBByContext(void* context);
+// Process manager is a global singleton object used to manage processes.
+typedef struct ProcessManager
+{
+    ProcessManagerGetProcessCount              GetProcessCount;
+    ProcessManagerGetTimerQueueProcessCount    GetTimerQueueProcessCount;
+    ProcessManagerGetTimerQueueProcess         GetTimerQueueProcess;
+    ProcessManagerGetReadyQueueProcessCount    GetReadyQueueProcessCount;
+    ProcessManagerGetPCBByID                   GetPCBByID;
+    ProcessManagerGetPCBByName                 GetPCBByName;
+    ProcessManagerGetPCBByContext              GetPCBByContext;
 
-void   RemovePCBFromRunningListByID(long processID);
-void   RemoveFromTimerQueueByID(long processID);
-void   RemoveFromReadyQueueByID(long processID);
-void   PopFromTimerQueue(PCB** ppcb);
-void   PushToTimerQueue(PCB* pcb);
-void   PopFromReadyQueue(PCB** ppcb);
-void   PushToReadyQueue(PCB* pcb);
-PCB*   OSCreateProcess(char* name, ProcessEntry entry, int priority, long* reg1, long* reg2);
+    ProcessManagerRemovePCBFromRunningListByID RemovePCBFromRunningListByID;
+    ProcessManagerRemoveFromTimerQueueByID     RemoveFromTimerQueueByID;
+    ProcessManagerRemoveFromReadyQueueByID     RemoveFromReadyQueueByID;
+    ProcessManagerPopFromTimerQueue            PopFromTimerQueue;
+    ProcessManagerPushToTimerQueue             PushToTimerQueue;
+    ProcessManagerPopFromReadyQueue            PopFromReadyQueue;
+    ProcessManagerPushToReadyQueue             PushToReadyQueue;
+    ProcessManagerCreateProcess                CreateProcess;
+    ProcessManagerTerminateAllProcess          TerminateAllProcess;
+    ProcessManagerTerminateProcess             TerminateProcess;
+
+} ProcessManager;
+
+void ProcessManagerInitialize();
+void ProcessManagerTerminate();
+
+extern ProcessManager* gProcessManager;
 
 #endif

@@ -25,6 +25,7 @@
 #include "os_common.h"
 #include "svc.h"
 #include "process_manager.h"
+#include "scheduler.h"
 #include "interrupt_handler.h"
 
 extern void          *TO_VECTOR [];
@@ -183,7 +184,9 @@ void    osInit( int argc, char *argv[]  ) {
         Z502SwitchContext( SWITCH_CONTEXT_KILL_MODE, &next_context );
     }                   /* This routine should never return!!           */
 
-    ProcessManagerInit();
-    PCB* pcb = OSCreateProcess("test1b", test1b, 10, 0, 0);
+    ProcessManagerInitialize();
+    SchedulerInitialize();
+
+    PCB* pcb = gProcessManager->CreateProcess("test1a", 1, test1a, 10, 0, 0);
     Z502SwitchContext(SWITCH_CONTEXT_KILL_MODE, &pcb->context);
 }                                               // End of osInit

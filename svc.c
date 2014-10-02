@@ -3,10 +3,6 @@
 #include "os_common.h"
 #include "process_manager.h"
 
-extern List* GlobalProcessList;
-extern MinPriQueue* TimerQueue;
-extern MinPriQueue* ReadyQueue;
-
 //****************************************************************************
 void SVCGetProcessID(SYSTEM_CALL_DATA* SystemCallData)
 {
@@ -15,7 +11,7 @@ void SVCGetProcessID(SYSTEM_CALL_DATA* SystemCallData)
     {
         // Find caller's PCB.
         void* currentContext = (void*)Z502_CURRENT_CONTEXT;
-        PCB* pcb = GetPCBByContext(currentContext);
+        PCB* pcb = gProcessManager->GetPCBByContext(currentContext);
 
         long processID = pcb->processID;
         *(long*)SystemCallData->Argument[1] = processID;
@@ -23,7 +19,7 @@ void SVCGetProcessID(SYSTEM_CALL_DATA* SystemCallData)
     }
     else
     {
-        PCB* pcb = GetPCBByName((char*)SystemCallData->Argument[0]);
+        PCB* pcb = gProcessManager->GetPCBByName((char*)SystemCallData->Argument[0]);
         if( pcb )
         {
             long processID = pcb->processID;
@@ -42,21 +38,7 @@ void SVCTerminateProcess(SYSTEM_CALL_DATA* SystemCallData)
     if( (INT32)SystemCallData->Argument[0] == -2 )
     {
         // Terminate all.
-
-        ListNode* currentProcessNode = GlobalProcessList->head;
-        for( int i = 0; i < GlobalProcessList->count; ++i )
-        {
-            PCB* pcb = (PCB*)currentProcessNode->data;
-
-            RemoveFromTimerQueueByID(pcb->processID);
-            RemoveFromReadyQueueByID(pcb->processID);
-
-            free(pcb);
-
-            currentProcessNode = currentProcessNode->next;
-        }
-
-        ListRelease(GlobalProcessList);
+        gProcessManager->TerminateAllProcess();
         Z502Halt();
     }
     else if( (INT32)SystemCallData->Argument[0] == -1 )
@@ -65,15 +47,11 @@ void SVCTerminateProcess(SYSTEM_CALL_DATA* SystemCallData)
 
         // Find caller's PCB.
         void* currentContext = (void*)Z502_CURRENT_CONTEXT;
-        PCB* pcb = GetPCBByContext(currentContext);
+        PCB* pcb = gProcessManager->GetPCBByContext(currentContext);
         long processID = pcb->processID;
 
-        // Remove from global list and queues.
-        RemoveFromTimerQueueByID(processID);
-        RemoveFromReadyQueueByID(processID);
-        RemovePCBFromRunningListByID(processID);
-
-        free(pcb);
+        gProcessManager->TerminateProcess(processID);
+        DEALLOC(pcb);
 
         if( processID == 1 )
         {
@@ -85,7 +63,7 @@ void SVCTerminateProcess(SYSTEM_CALL_DATA* SystemCallData)
         // Terminate by id.
 
         long processID = (long)SystemCallData->Argument[0];
-        PCB* pcb = GetPCBByID(processID);
+        PCB* pcb = gProcessManager->GetPCBByID(processID);
 
         if( !pcb )
         {
@@ -95,12 +73,8 @@ void SVCTerminateProcess(SYSTEM_CALL_DATA* SystemCallData)
         }
 
         // Remove from global list and queues.
-        RemoveFromTimerQueueByID(processID);
-        RemoveFromReadyQueueByID(processID);
-        RemovePCBFromRunningListByID(processID);
-
-        //Z502DestroyContext(&pcb->context);
-        free(pcb);
+        gProcessManager->TerminateProcess(processID);
+        DEALLOC(pcb);
     }
 
     if( SystemCallData->Argument[1] )
@@ -113,7 +87,7 @@ void SVCCreateProcess(SYSTEM_CALL_DATA* SystemCallData)
 {
     long* dstErr = (long*)SystemCallData->Argument[4];
 
-    int processCount = GetProcessCount();
+    int processCount = gProcessManager->GetProcessCount();
     if( processCount >= MAX_PROCESS_NUM )
     {
         if( dstErr )
@@ -142,7 +116,7 @@ void SVCCreateProcess(SYSTEM_CALL_DATA* SystemCallData)
         return;
     }
 
-    PCB* oldPcb = GetPCBByName(name);
+    PCB* oldPcb = gProcessManager->GetPCBByName(name);
     if( oldPcb )
     {
         if( dstErr )
@@ -162,11 +136,12 @@ void SVCCreateProcess(SYSTEM_CALL_DATA* SystemCallData)
         return;
     }
 
-    OSCreateProcess((char*)SystemCallData->Argument[0],
-        (ProcessEntry)SystemCallData->Argument[1],
-        (int)SystemCallData->Argument[2],
-        (long*)SystemCallData->Argument[3],
-        (long*)SystemCallData->Argument[4]);
+    gProcessManager->CreateProcess((char*)SystemCallData->Argument[0],
+                                   1,
+                                   (ProcessEntry)SystemCallData->Argument[1],
+                                   (int)SystemCallData->Argument[2],
+                                   (long*)SystemCallData->Argument[3],
+                                   (long*)SystemCallData->Argument[4]);
 }
 //****************************************************************************
 void SVCStartTimer(SYSTEM_CALL_DATA* SystemCallData)
@@ -178,25 +153,25 @@ void SVCStartTimer(SYSTEM_CALL_DATA* SystemCallData)
 
     // Find caller's PCB.
     currentContext = (void*)Z502_CURRENT_CONTEXT;
-    PCB* pcb = GetPCBByContext(currentContext);
+    PCB* pcb = gProcessManager->GetPCBByContext(currentContext);
 
     CALL(MEM_READ(Z502ClockStatus, &currentTime));
     sleepTime = (INT32)SystemCallData->Argument[0];
     pcb->timerQueueKey = currentTime + sleepTime;
 
     // Check timer queue to see if there is a process to be awakened earlier.
-    int needRestartTimer = 0;
-    if( TimerQueue->heap.size > 0 )
+    int needRestartTimer = 1;
+    if( gProcessManager->GetTimerQueueProcessCount() > 0 )
     {
-        HeapItem* anotherSleepingProcess = MinPriQueueGetMin(TimerQueue);
-        if( pcb->timerQueueKey < anotherSleepingProcess->key.key )
+        PCB* anotherSleepingProcess = gProcessManager->GetTimerQueueProcess(0);
+        if( pcb->timerQueueKey > anotherSleepingProcess->timerQueueKey )
         {
-            needRestartTimer = 1;
+            needRestartTimer = 0;
         }
     }
 
-    RemoveFromReadyQueueByID(pcb->processID);
-    PushToTimerQueue(pcb);
+    gProcessManager->RemoveFromReadyQueueByID(pcb->processID);
+    gProcessManager->PushToTimerQueue(pcb);
 
     CALL(MEM_READ(Z502TimerStatus, &Status));
     if( Status == DEVICE_FREE )

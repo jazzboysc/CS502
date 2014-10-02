@@ -11,7 +11,9 @@
 #include "string.h"
 #include "z502.h"
 #include "list.h"
+
 #include "priority_queue.h"
+#include "memory.h"
 
 // These loacations are global and define information about the page table
 extern UINT16*       Z502_PAGE_TBL_ADDR;

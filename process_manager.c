@@ -1,26 +1,45 @@
 #include "process_manager.h"
 #include "os_common.h"
 
-List* GlobalProcessList;
-MinPriQueue* TimerQueue;
-MinPriQueue* ReadyQueue;
+// Global data managed by process manager.
+List* gGlobalProcessList;
+MinPriQueue* gTimerQueue;
+MinPriQueue* gReadyQueue;
+
+ProcessManager* gProcessManager;
 
 //****************************************************************************
-void ProcessManagerInit()
+int GetTimerQueueProcessCount()
 {
-    // Init OS global variables.
-    GlobalProcessList = calloc(1, sizeof(List));
-    TimerQueue = calloc(1, sizeof(MinPriQueue));
-    MinPriQueueInit(TimerQueue, MAX_PROCESS_NUM);
-    ReadyQueue = calloc(1, sizeof(MinPriQueue));
-    MinPriQueueInit(ReadyQueue, MAX_PROCESS_NUM);
+    if( gTimerQueue )
+    {
+        return gTimerQueue->heap.size;
+    }
+
+    return 0;
+}
+//****************************************************************************
+PCB* GetTimerQueueProcess(int i)
+{
+    assert(i >= 0 && i < gTimerQueue->heap.size);
+    return (PCB*)gTimerQueue->heap.buffer[i + 1].data;
+}
+//****************************************************************************
+int GetReadyQueueProcessCount()
+{
+    if( gReadyQueue )
+    {
+        return gReadyQueue->heap.size;
+    }
+
+    return 0;
 }
 //****************************************************************************
 int GetProcessCount()
 {
-    if( GlobalProcessList )
+    if( gGlobalProcessList )
     {
-        return GlobalProcessList->count;
+        return gGlobalProcessList->count;
     }
 
     return 0;
@@ -28,7 +47,7 @@ int GetProcessCount()
 //****************************************************************************
 PCB* GetPCBByID(long processID)
 {
-    ListNode* currentNode = GlobalProcessList->head;
+    ListNode* currentNode = gGlobalProcessList->head;
     while( currentNode )
     {
         if( ((PCB*)currentNode->data)->processID == processID )
@@ -43,7 +62,7 @@ PCB* GetPCBByID(long processID)
 //****************************************************************************
 PCB* GetPCBByName(char* name)
 {
-    ListNode* currentNode = GlobalProcessList->head;
+    ListNode* currentNode = gGlobalProcessList->head;
     while( currentNode )
     {
         if( strcmp(((PCB*)currentNode->data)->name, name) == 0 )
@@ -58,7 +77,7 @@ PCB* GetPCBByName(char* name)
 //****************************************************************************
 PCB* GetPCBByContext(void* context)
 {
-    ListNode* currentNode = GlobalProcessList->head;
+    ListNode* currentNode = gGlobalProcessList->head;
     while( currentNode )
     {
         if( ((PCB*)currentNode->data)->context == context )
@@ -73,13 +92,13 @@ PCB* GetPCBByContext(void* context)
 //****************************************************************************
 void RemovePCBFromRunningListByID(long processID)
 {
-    ListNode* currentNode = GlobalProcessList->head;
+    ListNode* currentNode = gGlobalProcessList->head;
     if( ((PCB*)currentNode->data)->processID == processID )
     {
-        free(GlobalProcessList->head);
-        GlobalProcessList->head = 0;
+        free(gGlobalProcessList->head);
+        gGlobalProcessList->head = 0;
         currentNode = 0;
-        GlobalProcessList->count--;
+        gGlobalProcessList->count--;
 
         return;
     }
@@ -92,7 +111,7 @@ void RemovePCBFromRunningListByID(long processID)
         {
             prevNode->next = currentNode->next;
             free(currentNode);
-            GlobalProcessList->count--;
+            gGlobalProcessList->count--;
             break;
         }
         currentNode = currentNode->next;
@@ -103,13 +122,13 @@ void RemovePCBFromRunningListByID(long processID)
 //****************************************************************************
 void RemoveFromTimerQueueByID(long processID)
 {
-    for( int i = 1; i <= TimerQueue->heap.size; ++i )
+    for( int i = 1; i <= gTimerQueue->heap.size; ++i )
     {
-        HeapItem* item = &(TimerQueue->heap.buffer[i]);
+        HeapItem* item = &(gTimerQueue->heap.buffer[i]);
         if( ((PCB*)item->data)->processID == processID )
         {
             HeapItem temp;
-            MinPriQueueRemove(TimerQueue, i, &temp);
+            MinPriQueueRemove(gTimerQueue, i, &temp);
             break;
         }
     }
@@ -117,13 +136,13 @@ void RemoveFromTimerQueueByID(long processID)
 //****************************************************************************
 void RemoveFromReadyQueueByID(long processID)
 {
-    for( int i = 1; i <= ReadyQueue->heap.size; ++i )
+    for( int i = 1; i <= gReadyQueue->heap.size; ++i )
     {
-        HeapItem* item = &(ReadyQueue->heap.buffer[i]);
+        HeapItem* item = &(gReadyQueue->heap.buffer[i]);
         if( ((PCB*)item->data)->processID == processID )
         {
             HeapItem temp;
-            MinPriQueueRemove(ReadyQueue, i, &temp);
+            MinPriQueueRemove(gReadyQueue, i, &temp);
             break;
         }
     }
@@ -132,41 +151,45 @@ void RemoveFromReadyQueueByID(long processID)
 void PopFromTimerQueue(PCB** ppcb)
 {
     HeapItem item;
-    MinPriQueuePop(TimerQueue, &item);
+    MinPriQueuePop(gTimerQueue, &item);
     *ppcb = (PCB*)item.data;
 }
 //****************************************************************************
 void PushToTimerQueue(PCB* pcb)
 {
-    MinPriQueuePush(TimerQueue, pcb->timerQueueKey, pcb);
+    MinPriQueuePush(gTimerQueue, pcb->timerQueueKey, pcb);
 }
 //****************************************************************************
 void PopFromReadyQueue(PCB** ppcb)
 {
     HeapItem item;
-    MinPriQueuePop(ReadyQueue, &item);
+    MinPriQueuePop(gReadyQueue, &item);
     *ppcb = (PCB*)item.data;
 }
 //****************************************************************************
 void PushToReadyQueue(PCB* pcb)
 {
-    MinPriQueuePush(ReadyQueue, pcb->readyQueueKey, pcb);
+    MinPriQueuePush(gReadyQueue, pcb->readyQueueKey, pcb);
 }
 //****************************************************************************
-PCB* OSCreateProcess(char* name, ProcessEntry entry, int priority, long* dstID,
-    long* dstErr)
+PCB* CreateProcess(char* name, int type, ProcessEntry entry, int priority, 
+    long* dstID, long* dstErr)
 {
-    static long CurrentProcessID = 0;
+    // Global process ID number is assigned to each process created.
+    static long gCurrentProcessID = 0;
 
-    PCB* pcb = calloc(1, sizeof(PCB));
+    // Create a PCB for the new process.
+    PCB* pcb = ALLOC(PCB);
+    pcb->type = type;
     pcb->entry = entry;
     pcb->priority = priority;
+    pcb->currentPriority = priority;
     pcb->readyQueueKey = priority;
     size_t len = strlen(name);
     pcb->name = malloc(len + 1);
     strcpy(pcb->name, name);
     pcb->name[len] = 0;
-    pcb->processID = ++CurrentProcessID;
+    pcb->processID = ++gCurrentProcessID;
 
     // Return process id to the caller.
     if( dstID )
@@ -179,15 +202,79 @@ PCB* OSCreateProcess(char* name, ProcessEntry entry, int priority, long* dstID,
     }
 
     // Add to global process list.
-    ListNode* pcbNode = calloc(1, sizeof(ListNode));
+    ListNode* pcbNode = ALLOC(ListNode);
     pcbNode->data = (void*)pcb;
-    ListAttach(GlobalProcessList, pcbNode);
+    ListAttach(gGlobalProcessList, pcbNode);
 
     // Add to ready queue.
-    MinPriQueuePush(ReadyQueue, priority, pcb);
+    MinPriQueuePush(gReadyQueue, priority, pcb);
 
+    // Create hardware context for the process.
     Z502MakeContext(&pcb->context, (void*)entry, USER_MODE);
 
     return pcb;
+}
+//****************************************************************************
+void TerminateAllProcess()
+{
+    ListNode* currentProcessNode = gGlobalProcessList->head;
+    for( int i = 0; i < gGlobalProcessList->count; ++i )
+    {
+        PCB* pcb = (PCB*)currentProcessNode->data;
+
+        RemoveFromTimerQueueByID(pcb->processID);
+        RemoveFromReadyQueueByID(pcb->processID);
+
+        DEALLOC(pcb);
+
+        currentProcessNode = currentProcessNode->next;
+    }
+
+    ListRelease(gGlobalProcessList);
+}
+//****************************************************************************
+void TerminateProcess(long processID)
+{
+    RemoveFromTimerQueueByID(processID);
+    RemoveFromReadyQueueByID(processID);
+    RemovePCBFromRunningListByID(processID);
+}
+//****************************************************************************
+
+
+//****************************************************************************
+void ProcessManagerInitialize()
+{
+    // Create process manager.
+    gProcessManager = ALLOC(ProcessManager);
+    gProcessManager->CreateProcess = CreateProcess;
+    gProcessManager->GetPCBByContext = GetPCBByContext;
+    gProcessManager->GetPCBByID = GetPCBByID;
+    gProcessManager->GetPCBByName = GetPCBByName;
+    gProcessManager->GetProcessCount = GetProcessCount;
+    gProcessManager->GetReadyQueueProcessCount = GetReadyQueueProcessCount;
+    gProcessManager->GetTimerQueueProcessCount = GetTimerQueueProcessCount;
+    gProcessManager->GetTimerQueueProcess = GetTimerQueueProcess;
+    gProcessManager->PopFromReadyQueue = PopFromReadyQueue;
+    gProcessManager->PopFromTimerQueue = PopFromTimerQueue;
+    gProcessManager->PushToReadyQueue = PushToReadyQueue;
+    gProcessManager->PushToTimerQueue = PushToTimerQueue;
+    gProcessManager->RemoveFromReadyQueueByID = RemoveFromReadyQueueByID;
+    gProcessManager->RemoveFromTimerQueueByID = RemoveFromTimerQueueByID;
+    gProcessManager->RemovePCBFromRunningListByID = RemovePCBFromRunningListByID;
+    gProcessManager->TerminateAllProcess = TerminateAllProcess;
+    gProcessManager->TerminateProcess = TerminateProcess;
+
+    // Init OS global variables.
+    gGlobalProcessList = ALLOC(List);
+    gTimerQueue = ALLOC(MinPriQueue);
+    MinPriQueueInit(gTimerQueue, MAX_PROCESS_NUM);
+    gReadyQueue = ALLOC(MinPriQueue);
+    MinPriQueueInit(gReadyQueue, MAX_PROCESS_NUM);
+}
+//****************************************************************************
+void ProcessManagerTerminate()
+{
+    DEALLOC(gProcessManager);
 }
 //****************************************************************************
