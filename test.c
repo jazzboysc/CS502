@@ -1192,7 +1192,7 @@ void test1x(void) {
     printf("Test1x, PID %ld, Ends at Time %ld\n", Z502_REG2, Z502_REG4);
 
     TERMINATE_PROCESS(-1, &Z502_REG9);
-    printf("ERROR: Test1x should be terminated but isn't.\n");
+    printf("ERROR: PID %ld Test1x should be terminated but isn't.\n", (int)Z502_REG2);
 
 } /* End of test1x    */
 

@@ -154,11 +154,13 @@ void PopFromTimerQueue(PCB** ppcb)
     HeapItem item;
     MinPriQueuePop(gTimerQueue, &item);
     *ppcb = (PCB*)item.data;
+    (*ppcb)->state = PROCESS_STATE_UNKNOWN;
 }
 //****************************************************************************
 void PushToTimerQueue(PCB* pcb)
 {
     MinPriQueuePush(gTimerQueue, pcb->timerQueueKey, pcb);
+    pcb->state = PROCESS_STATE_SLEEP;
 }
 //****************************************************************************
 void PopFromReadyQueue(PCB** ppcb)
@@ -166,11 +168,13 @@ void PopFromReadyQueue(PCB** ppcb)
     HeapItem item;
     MaxPriQueuePop(gReadyQueue, &item);
     *ppcb = (PCB*)item.data;
+    (*ppcb)->state = PROCESS_STATE_UNKNOWN;
 }
 //****************************************************************************
 void PushToReadyQueue(PCB* pcb)
 {
     MaxPriQueuePush(gReadyQueue, pcb->readyQueueKey, pcb);
+    pcb->state = PROCESS_STATE_READY;
 }
 //****************************************************************************
 PCB* CreateProcess(char* name, int type, ProcessEntry entry, int priority, 
@@ -202,13 +206,17 @@ PCB* CreateProcess(char* name, int type, ProcessEntry entry, int priority,
         *dstErr = ERR_SUCCESS;
     }
 
-    // Add to global process list.
-    ListNode* pcbNode = ALLOC(ListNode);
-    pcbNode->data = (void*)pcb;
-    ListAttach(gGlobalProcessList, pcbNode);
+    // Only add user process to global list and queue.
+    if( type == 1 )
+    {
+        // Add to global process list.
+        ListNode* pcbNode = ALLOC(ListNode);
+        pcbNode->data = (void*)pcb;
+        ListAttach(gGlobalProcessList, pcbNode);
 
-    // Add to ready queue.
-    MaxPriQueuePush(gReadyQueue, priority, pcb);
+        // Add to ready queue.
+        PushToReadyQueue(pcb);
+    }
 
     // Create hardware context for the process.
     Z502MakeContext(&pcb->context, (void*)entry, USER_MODE);

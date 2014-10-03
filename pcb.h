@@ -1,8 +1,12 @@
 #ifndef PCB_H_
 #define PCB_H_
 
-typedef void(*ProcessEntry)(void);
+#define PROCESS_STATE_UNKNOWN 0
+#define PROCESS_STATE_READY   1
+#define PROCESS_STATE_SLEEP   2
+#define PROCESS_STATE_RUNNING 3
 
+typedef void(*ProcessEntry)(void);
 typedef struct _PCB
 {
     char*         name;
@@ -13,6 +17,7 @@ typedef struct _PCB
     int           currentPriority;
     int           timerQueueKey;
     int           readyQueueKey;
+    int           state; // 1 : ready 2 : sleep 3 : running
     void*         context;
 } PCB;
 

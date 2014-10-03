@@ -11,8 +11,7 @@ void SVCGetProcessID(SYSTEM_CALL_DATA* SystemCallData)
     if( nameLen == 0 )
     {
         // Find caller's PCB.
-        void* currentContext = (void*)Z502_CURRENT_CONTEXT;
-        PCB* pcb = gProcessManager->GetPCBByContext(currentContext);
+        PCB* pcb = gProcessManager->GetRunningProcess();
 
         long processID = pcb->processID;
         *(long*)SystemCallData->Argument[1] = processID;
@@ -39,7 +38,7 @@ void SVCTerminateProcess(SYSTEM_CALL_DATA* SystemCallData)
     if( (INT32)SystemCallData->Argument[0] == -2 )
     {
         // Terminate all.
-        gProcessManager->TerminateAllProcess();
+        //gProcessManager->TerminateAllProcess();
         Z502Halt();
     }
     else if( (INT32)SystemCallData->Argument[0] == -1 )
@@ -47,8 +46,7 @@ void SVCTerminateProcess(SYSTEM_CALL_DATA* SystemCallData)
         // Terminate myself.
 
         // Find caller's PCB.
-        void* currentContext = (void*)Z502_CURRENT_CONTEXT;
-        PCB* pcb = gProcessManager->GetPCBByContext(currentContext);
+        PCB* pcb = gProcessManager->GetRunningProcess();
         long processID = pcb->processID;
 
         gProcessManager->TerminateProcess(processID);
@@ -152,11 +150,9 @@ void SVCStartTimer(SYSTEM_CALL_DATA* SystemCallData)
     INT32 currentTime;
     INT32 Status;
     INT32 sleepTime;
-    void* currentContext;
 
     // Find caller's PCB.
-    currentContext = (void*)Z502_CURRENT_CONTEXT;
-    PCB* pcb = gProcessManager->GetPCBByContext(currentContext);
+    PCB* pcb = gProcessManager->GetRunningProcess();
 
     CALL(MEM_READ(Z502ClockStatus, &currentTime));
     sleepTime = (INT32)SystemCallData->Argument[0];
@@ -173,33 +169,33 @@ void SVCStartTimer(SYSTEM_CALL_DATA* SystemCallData)
         }
     }
 
-    gProcessManager->RemoveFromReadyQueueByID(pcb->processID);
     gProcessManager->PushToTimerQueue(pcb);
 
-    MEM_READ(Z502TimerStatus, &Status);
-    if( Status == DEVICE_FREE )
-    {
-        printf("SVCStartTimer: Timer is free\n");
-    }
-    else
-    {
-        printf("SVCStartTimer: Timer is busy\n");
-    }
+    //MEM_READ(Z502TimerStatus, &Status);
+    //if( Status == DEVICE_FREE )
+    //{
+    //    printf("SVCStartTimer: Timer is free\n");
+    //}
+    //else
+    //{
+    //    printf("SVCStartTimer: Timer is busy\n");
+    //}
 
     if( needRestartTimer == 1 )
     {
         MEM_WRITE(Z502TimerStart, &sleepTime);
-        MEM_READ(Z502TimerStatus, &Status);
-        if( Status == DEVICE_IN_USE )
-        {
-            printf("SVCStartTimer: Timer started\n");
-        }
-        else
-        {
-            printf("SVCStartTimer: Unable to start timer\n");
-        }
+
+        //MEM_READ(Z502TimerStatus, &Status);
+        //if( Status == DEVICE_FREE )
+        //{
+        //    printf("SVCStartTimer: Timer is free\n");
+        //}
+        //else
+        //{
+        //    printf("SVCStartTimer: Timer is busy\n");
+        //}
     }
 
-    gScheduler->OnProcessSleep();
+    Z502Idle();
 }
 //****************************************************************************

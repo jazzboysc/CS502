@@ -29,6 +29,7 @@ void IHTimerInterrupt()
         // Only push user process to ready queue.
         gProcessManager->PushToReadyQueue(pcb);
     }
+    printf("Waking process %d\n", pcb->processID);
 
     // Check timer queue and see if there are other sleeping processes need to 
     // be awakened since multiple processes may want to wake at the same time.
@@ -62,22 +63,12 @@ void IHTimerInterrupt()
     if( gProcessManager->GetTimerQueueProcessCount() > 0 )
     {
         INT32 currentTime;
-        CALL(MEM_READ(Z502ClockStatus, &currentTime));
+        MEM_READ(Z502ClockStatus, &currentTime);
 
         PCB* anotherSleepingProcess = gProcessManager->GetTimerQueueProcess(0);
         INT32 deltaTime = anotherSleepingProcess->timerQueueKey - currentTime;
-        INT32 Status;
 
-        CALL(MEM_WRITE(Z502TimerStart, &deltaTime));
-        CALL(MEM_READ(Z502TimerStatus, &Status));
-        if( Status == DEVICE_IN_USE )
-        {
-            printf("IHTimerInterrupt: Timer restarted\n");
-        }
-        else
-        {
-            printf("IHTimerInterrupt: Unable to restart timer\n");
-        }
+        MEM_WRITE(Z502TimerStart, &deltaTime);
     }
 
     if( schedulerPCB )

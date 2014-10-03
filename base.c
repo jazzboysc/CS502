@@ -187,6 +187,6 @@ void    osInit( int argc, char *argv[]  ) {
     ProcessManagerInitialize();
     SchedulerInitialize();
 
-    PCB* pcb = gProcessManager->CreateProcess("test1b", 1, test1b, 10, 0, 0);
+    PCB* pcb = gProcessManager->CreateProcess("test1c", 1, test1c, 20, 0, 0);
     gScheduler->Dispatch();
 }                                               // End of osInit
