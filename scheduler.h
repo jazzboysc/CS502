@@ -3,11 +3,17 @@
 
 #include "pcb.h"
 
+typedef void (*SchedulerOnTimeOut)();
+typedef void (*SchedulerOnProcessTerminate)();
+typedef void (*SchedulerOnProcessSleep)();
 typedef void (*SchedulerDispatch)();
 
 typedef struct Scheduler
 {
-    SchedulerDispatch Dispatch;
+    SchedulerOnTimeOut          OnTimeOut;
+    SchedulerOnProcessTerminate OnProcessTerminate;
+    SchedulerOnProcessSleep     OnProcessSleep;
+    SchedulerDispatch           Dispatch;
 
     PCB* schedulerPCB;
 } Scheduler;

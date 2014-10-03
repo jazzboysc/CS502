@@ -2,6 +2,7 @@
 #include "pcb.h"
 #include "os_common.h"
 #include "process_manager.h"
+#include "scheduler.h"
 
 //****************************************************************************
 void SVCGetProcessID(SYSTEM_CALL_DATA* SystemCallData)
@@ -81,6 +82,8 @@ void SVCTerminateProcess(SYSTEM_CALL_DATA* SystemCallData)
     {
         *(long*)SystemCallData->Argument[1] = ERR_SUCCESS;
     }
+
+    gScheduler->OnProcessTerminate();
 }
 //****************************************************************************
 void SVCCreateProcess(SYSTEM_CALL_DATA* SystemCallData)
@@ -173,7 +176,7 @@ void SVCStartTimer(SYSTEM_CALL_DATA* SystemCallData)
     gProcessManager->RemoveFromReadyQueueByID(pcb->processID);
     gProcessManager->PushToTimerQueue(pcb);
 
-    CALL(MEM_READ(Z502TimerStatus, &Status));
+    MEM_READ(Z502TimerStatus, &Status);
     if( Status == DEVICE_FREE )
     {
         printf("SVCStartTimer: Timer is free\n");
@@ -185,8 +188,8 @@ void SVCStartTimer(SYSTEM_CALL_DATA* SystemCallData)
 
     if( needRestartTimer == 1 )
     {
-        CALL(MEM_WRITE(Z502TimerStart, &sleepTime));
-        CALL(MEM_READ(Z502TimerStatus, &Status));
+        MEM_WRITE(Z502TimerStart, &sleepTime);
+        MEM_READ(Z502TimerStatus, &Status);
         if( Status == DEVICE_IN_USE )
         {
             printf("SVCStartTimer: Timer started\n");
@@ -197,6 +200,6 @@ void SVCStartTimer(SYSTEM_CALL_DATA* SystemCallData)
         }
     }
 
-    Z502Idle();
+    gScheduler->OnProcessSleep();
 }
 //****************************************************************************

@@ -2,9 +2,10 @@
 #include "os_common.h"
 
 // Global data managed by process manager.
-List* gGlobalProcessList;
+List*        gGlobalProcessList;
 MinPriQueue* gTimerQueue;
 MaxPriQueue* gReadyQueue;
+PCB*         gRunningProcess;
 
 ProcessManager* gProcessManager;
 
@@ -240,6 +241,16 @@ void TerminateProcess(long processID)
     RemovePCBFromRunningListByID(processID);
 }
 //****************************************************************************
+void SetRunningProcess(PCB* pcb)
+{
+    gRunningProcess = pcb;
+}
+//****************************************************************************
+PCB* GetRunningProcess()
+{
+    return gRunningProcess;
+}
+//****************************************************************************
 
 
 //****************************************************************************
@@ -264,6 +275,8 @@ void ProcessManagerInitialize()
     gProcessManager->RemovePCBFromRunningListByID = RemovePCBFromRunningListByID;
     gProcessManager->TerminateAllProcess = TerminateAllProcess;
     gProcessManager->TerminateProcess = TerminateProcess;
+    gProcessManager->SetRunningProcess = SetRunningProcess;
+    gProcessManager->GetRunningProcess = GetRunningProcess;
 
     // Init OS global variables.
     gGlobalProcessList = ALLOC(List);
@@ -271,6 +284,7 @@ void ProcessManagerInitialize()
     MinPriQueueInit(gTimerQueue, MAX_PROCESS_NUM);
     gReadyQueue = ALLOC(MaxPriQueue);
     MaxPriQueueInit(gReadyQueue, MAX_PROCESS_NUM);
+    gRunningProcess = NULL;
 }
 //****************************************************************************
 void ProcessManagerTerminate()

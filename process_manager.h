@@ -21,6 +21,8 @@ typedef void (*ProcessManagerPushToReadyQueue)(PCB* pcb);
 typedef PCB* (*ProcessManagerCreateProcess)(char* name, int type, ProcessEntry entry, int priority, long* reg1, long* reg2);
 typedef void (*ProcessManagerTerminateAllProcess)();
 typedef void (*ProcessManagerTerminateProcess)(long processID);
+typedef void (*ProcessManagerSetRunningProcess)(PCB* pcb);
+typedef PCB* (*ProcessManagerGetRunningProcess)();
 
 // Process manager is a global singleton object used to manage processes.
 typedef struct ProcessManager
@@ -43,6 +45,9 @@ typedef struct ProcessManager
     ProcessManagerCreateProcess                CreateProcess;
     ProcessManagerTerminateAllProcess          TerminateAllProcess;
     ProcessManagerTerminateProcess             TerminateProcess;
+
+    ProcessManagerSetRunningProcess            SetRunningProcess;
+    ProcessManagerGetRunningProcess            GetRunningProcess;
 
 } ProcessManager;
 

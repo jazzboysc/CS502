@@ -187,6 +187,6 @@ void    osInit( int argc, char *argv[]  ) {
     ProcessManagerInitialize();
     SchedulerInitialize();
 
-    PCB* pcb = gProcessManager->CreateProcess("test1a", 1, test1a, 10, 0, 0);
-    Z502SwitchContext(SWITCH_CONTEXT_KILL_MODE, &pcb->context);
+    PCB* pcb = gProcessManager->CreateProcess("test1b", 1, test1b, 10, 0, 0);
+    gScheduler->Dispatch();
 }                                               // End of osInit
