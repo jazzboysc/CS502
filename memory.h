@@ -4,4 +4,9 @@
 #define ALLOC(Type) calloc(1, sizeof(Type))
 #define DEALLOC(Object) free(Object); Object = NULL
 
+<<<<<<< HEAD
 #endif
+=======
+
+#endif
+>>>>>>> origin/master

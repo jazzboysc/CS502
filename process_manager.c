@@ -4,7 +4,7 @@
 // Global data managed by process manager.
 List* gGlobalProcessList;
 MinPriQueue* gTimerQueue;
-MinPriQueue* gReadyQueue;
+MaxPriQueue* gReadyQueue;
 
 ProcessManager* gProcessManager;
 
@@ -142,7 +142,7 @@ void RemoveFromReadyQueueByID(long processID)
         if( ((PCB*)item->data)->processID == processID )
         {
             HeapItem temp;
-            MinPriQueueRemove(gReadyQueue, i, &temp);
+            MaxPriQueueRemove(gReadyQueue, i, &temp);
             break;
         }
     }
@@ -163,13 +163,13 @@ void PushToTimerQueue(PCB* pcb)
 void PopFromReadyQueue(PCB** ppcb)
 {
     HeapItem item;
-    MinPriQueuePop(gReadyQueue, &item);
+    MaxPriQueuePop(gReadyQueue, &item);
     *ppcb = (PCB*)item.data;
 }
 //****************************************************************************
 void PushToReadyQueue(PCB* pcb)
 {
-    MinPriQueuePush(gReadyQueue, pcb->readyQueueKey, pcb);
+    MaxPriQueuePush(gReadyQueue, pcb->readyQueueKey, pcb);
 }
 //****************************************************************************
 PCB* CreateProcess(char* name, int type, ProcessEntry entry, int priority, 
@@ -207,7 +207,7 @@ PCB* CreateProcess(char* name, int type, ProcessEntry entry, int priority,
     ListAttach(gGlobalProcessList, pcbNode);
 
     // Add to ready queue.
-    MinPriQueuePush(gReadyQueue, priority, pcb);
+    MaxPriQueuePush(gReadyQueue, priority, pcb);
 
     // Create hardware context for the process.
     Z502MakeContext(&pcb->context, (void*)entry, USER_MODE);
@@ -269,8 +269,8 @@ void ProcessManagerInitialize()
     gGlobalProcessList = ALLOC(List);
     gTimerQueue = ALLOC(MinPriQueue);
     MinPriQueueInit(gTimerQueue, MAX_PROCESS_NUM);
-    gReadyQueue = ALLOC(MinPriQueue);
-    MinPriQueueInit(gReadyQueue, MAX_PROCESS_NUM);
+    gReadyQueue = ALLOC(MaxPriQueue);
+    MaxPriQueueInit(gReadyQueue, MAX_PROCESS_NUM);
 }
 //****************************************************************************
 void ProcessManagerTerminate()
