@@ -11,7 +11,7 @@ typedef int  (*ProcessManagerGetReadyQueueProcessCount)();
 typedef PCB* (*ProcessManagerGetPCBByID)(long processID);
 typedef PCB* (*ProcessManagerGetPCBByName)(char* name);
 typedef PCB* (*ProcessManagerGetPCBByContext)(void* context);
-typedef void (*ProcessManagerRemovePCBFromRunningListByID)(long processID);
+typedef void (*ProcessManagerRemovePCBFromGlobalListByID)(long processID);
 typedef void (*ProcessManagerRemoveFromTimerQueueByID)(long processID);
 typedef void (*ProcessManagerRemoveFromReadyQueueByID)(long processID);
 typedef void (*ProcessManagerPopFromTimerQueue)(PCB** ppcb);
@@ -20,7 +20,7 @@ typedef void (*ProcessManagerPopFromReadyQueue)(PCB** ppcb);
 typedef void (*ProcessManagerPushToReadyQueue)(PCB* pcb);
 typedef PCB* (*ProcessManagerCreateProcess)(char* name, int type, ProcessEntry entry, int priority, long* reg1, long* reg2);
 typedef void (*ProcessManagerTerminateAllProcess)();
-typedef void (*ProcessManagerTerminateProcess)(long processID);
+typedef void (*ProcessManagerTerminateProcess)(PCB* pcb);
 typedef void (*ProcessManagerSetRunningProcess)(PCB* pcb);
 typedef PCB* (*ProcessManagerGetRunningProcess)();
 
@@ -35,7 +35,7 @@ typedef struct ProcessManager
     ProcessManagerGetPCBByName                 GetPCBByName;
     ProcessManagerGetPCBByContext              GetPCBByContext;
 
-    ProcessManagerRemovePCBFromRunningListByID RemovePCBFromRunningListByID;
+    ProcessManagerRemovePCBFromGlobalListByID  RemovePCBFromGlobalListByID;
     ProcessManagerRemoveFromTimerQueueByID     RemoveFromTimerQueueByID;
     ProcessManagerRemoveFromReadyQueueByID     RemoveFromReadyQueueByID;
     ProcessManagerPopFromTimerQueue            PopFromTimerQueue;

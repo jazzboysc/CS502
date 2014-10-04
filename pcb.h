@@ -5,6 +5,7 @@
 #define PROCESS_STATE_READY   1
 #define PROCESS_STATE_SLEEP   2
 #define PROCESS_STATE_RUNNING 3
+#define PROCESS_STATE_DEAD    4
 
 typedef void(*ProcessEntry)(void);
 typedef struct _PCB

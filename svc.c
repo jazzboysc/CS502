@@ -12,19 +12,32 @@ void SVCGetProcessID(SYSTEM_CALL_DATA* SystemCallData)
     {
         // Find caller's PCB.
         PCB* pcb = gProcessManager->GetRunningProcess();
-
-        long processID = pcb->processID;
-        *(long*)SystemCallData->Argument[1] = processID;
-        *(long*)SystemCallData->Argument[2] = ERR_SUCCESS;
+        if( pcb->state == PROCESS_STATE_DEAD )
+        {
+            *(long*)SystemCallData->Argument[2] = ERR_PROCESS_ID_NOT_FOUND;
+        }
+        else
+        {
+            long processID = pcb->processID;
+            *(long*)SystemCallData->Argument[1] = processID;
+            *(long*)SystemCallData->Argument[2] = ERR_SUCCESS;
+        }
     }
     else
     {
         PCB* pcb = gProcessManager->GetPCBByName((char*)SystemCallData->Argument[0]);
         if( pcb )
         {
-            long processID = pcb->processID;
-            *(long*)SystemCallData->Argument[1] = processID;
-            *(long*)SystemCallData->Argument[2] = ERR_SUCCESS;
+            if( pcb->state == PROCESS_STATE_DEAD )
+            {
+                *(long*)SystemCallData->Argument[2] = ERR_PROCESS_ID_NOT_FOUND;
+            }
+            else
+            {
+                long processID = pcb->processID;
+                *(long*)SystemCallData->Argument[1] = processID;
+                *(long*)SystemCallData->Argument[2] = ERR_SUCCESS;
+            }
         }
         else
         {
@@ -38,7 +51,6 @@ void SVCTerminateProcess(SYSTEM_CALL_DATA* SystemCallData)
     if( (INT32)SystemCallData->Argument[0] == -2 )
     {
         // Terminate all.
-        //gProcessManager->TerminateAllProcess();
         Z502Halt();
     }
     else if( (INT32)SystemCallData->Argument[0] == -1 )
@@ -49,8 +61,7 @@ void SVCTerminateProcess(SYSTEM_CALL_DATA* SystemCallData)
         PCB* pcb = gProcessManager->GetRunningProcess();
         long processID = pcb->processID;
 
-        gProcessManager->TerminateProcess(processID);
-        DEALLOC(pcb);
+        gProcessManager->TerminateProcess(pcb);
 
         if( processID == 1 )
         {
@@ -71,9 +82,7 @@ void SVCTerminateProcess(SYSTEM_CALL_DATA* SystemCallData)
             return;
         }
 
-        // Remove from global list and queues.
-        gProcessManager->TerminateProcess(processID);
-        DEALLOC(pcb);
+        gProcessManager->TerminateProcess(pcb);
     }
 
     if( SystemCallData->Argument[1] )
@@ -171,7 +180,7 @@ void SVCStartTimer(SYSTEM_CALL_DATA* SystemCallData)
 
     gProcessManager->PushToTimerQueue(pcb);
 
-    //MEM_READ(Z502TimerStatus, &Status);
+    MEM_READ(Z502TimerStatus, &Status);
     //if( Status == DEVICE_FREE )
     //{
     //    printf("SVCStartTimer: Timer is free\n");
@@ -185,7 +194,7 @@ void SVCStartTimer(SYSTEM_CALL_DATA* SystemCallData)
     {
         MEM_WRITE(Z502TimerStart, &sleepTime);
 
-        //MEM_READ(Z502TimerStatus, &Status);
+        MEM_READ(Z502TimerStatus, &Status);
         //if( Status == DEVICE_FREE )
         //{
         //    printf("SVCStartTimer: Timer is free\n");
@@ -196,6 +205,6 @@ void SVCStartTimer(SYSTEM_CALL_DATA* SystemCallData)
         //}
     }
 
-    Z502Idle();
+    gScheduler->OnProcessSleep();
 }
 //****************************************************************************

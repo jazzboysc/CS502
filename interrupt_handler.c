@@ -10,7 +10,7 @@ void IHTimerInterrupt()
     if( timerQueueProcessCount == 0 )
     {
         // Something is wrong. The process who set the timer has been removed. 
-        assert(0);
+        //assert(0);
         return;
     }
 

@@ -11,6 +11,11 @@ void MakeReadyToRun()
     gProcessManager->PopFromReadyQueue(&pcb);
     if( pcb )
     {
+        if( pcb->state == PROCESS_STATE_DEAD )
+        {
+            assert(0);
+        }
+
         gProcessManager->SetRunningProcess(pcb);
         Z502SwitchContext(SWITCH_CONTEXT_SAVE_MODE, &pcb->context);
     }
@@ -19,20 +24,16 @@ void MakeReadyToRun()
 void OnRedispatch(void)
 {
     printf("User process ends. No other uers process is ready. Switch to scheduler... \n");
-    while( gProcessManager->GetTimerQueueProcessCount() > 0 )
+    while( 1 )
     {
-        printf("User process exists. Waiting... \n");
+        INT32 Status;
+        MEM_READ(Z502TimerStatus, &Status);
+
+        if( gProcessManager->GetReadyQueueProcessCount() > 0 )
+        {
+            MakeReadyToRun();
+        }
     }
-    Z502Halt();
-
-    //while( gScheduler->schedulerPCB->state == PROCESS_STATE_SLEEP );
-
-    //while( gProcessManager->GetProcessCount() > 1 )
-    //{
-    //    printf("User process exists. Dispatching... \n");
-    //    // Dispatch user process.
-
-    //}
 }
 //****************************************************************************
 void OnProcessTerminate()
@@ -55,7 +56,7 @@ void OnProcessSleep()
     }
     else
     {
-        //Z502SwitchContext(SWITCH_CONTEXT_SAVE_MODE, &gScheduler->schedulerPCB->context);
+        Z502SwitchContext(SWITCH_CONTEXT_SAVE_MODE, &gScheduler->schedulerPCB->context);
     }
 }
 //****************************************************************************

@@ -91,7 +91,7 @@ PCB* GetPCBByContext(void* context)
     return 0;
 }
 //****************************************************************************
-void RemovePCBFromRunningListByID(long processID)
+void RemovePCBFromGlobalListByID(long processID)
 {
     ListNode* currentNode = gGlobalProcessList->head;
     if( ((PCB*)currentNode->data)->processID == processID )
@@ -154,7 +154,7 @@ void PopFromTimerQueue(PCB** ppcb)
     HeapItem item;
     MinPriQueuePop(gTimerQueue, &item);
     *ppcb = (PCB*)item.data;
-    (*ppcb)->state = PROCESS_STATE_UNKNOWN;
+    //(*ppcb)->state = PROCESS_STATE_UNKNOWN;
 }
 //****************************************************************************
 void PushToTimerQueue(PCB* pcb)
@@ -168,7 +168,7 @@ void PopFromReadyQueue(PCB** ppcb)
     HeapItem item;
     MaxPriQueuePop(gReadyQueue, &item);
     *ppcb = (PCB*)item.data;
-    (*ppcb)->state = PROCESS_STATE_UNKNOWN;
+    //(*ppcb)->state = PROCESS_STATE_UNKNOWN;
 }
 //****************************************************************************
 void PushToReadyQueue(PCB* pcb)
@@ -242,15 +242,15 @@ void TerminateAllProcess()
     ListRelease(gGlobalProcessList);
 }
 //****************************************************************************
-void TerminateProcess(long processID)
+void TerminateProcess(PCB* pcb)
 {
-    RemoveFromTimerQueueByID(processID);
-    RemoveFromReadyQueueByID(processID);
-    RemovePCBFromRunningListByID(processID);
+    pcb->state = PROCESS_STATE_DEAD;
+    RemoveFromReadyQueueByID(pcb->processID);
 }
 //****************************************************************************
 void SetRunningProcess(PCB* pcb)
 {
+    pcb->state = PROCESS_STATE_RUNNING;
     gRunningProcess = pcb;
 }
 //****************************************************************************
@@ -280,7 +280,7 @@ void ProcessManagerInitialize()
     gProcessManager->PushToTimerQueue = PushToTimerQueue;
     gProcessManager->RemoveFromReadyQueueByID = RemoveFromReadyQueueByID;
     gProcessManager->RemoveFromTimerQueueByID = RemoveFromTimerQueueByID;
-    gProcessManager->RemovePCBFromRunningListByID = RemovePCBFromRunningListByID;
+    gProcessManager->RemovePCBFromGlobalListByID = RemovePCBFromGlobalListByID;
     gProcessManager->TerminateAllProcess = TerminateAllProcess;
     gProcessManager->TerminateProcess = TerminateProcess;
     gProcessManager->SetRunningProcess = SetRunningProcess;

@@ -155,12 +155,41 @@ void test0(void) {
 
  **************************************************************************/
 
+void test1a_a(void) {
+
+    GET_PROCESS_ID("", &Z502_REG2, &Z502_REG9);
+    printf("Release %s:Test 1a_a: Pid %ld\n", CURRENT_REL, Z502_REG2);
+
+    //INT32 Status;
+    //while( 1 )
+    //{
+    //    MEM_READ(Z502TimerStatus, &Status);
+    //    if( Status == DEVICE_FREE )
+    //    {
+    //        printf("SVCStartTimer: Timer is free\n");
+    //    }
+    //    else
+    //    {
+    //        printf("SVCStartTimer: Timer is busy\n");
+    //    }
+
+    //    printf("hello\n");
+    //}
+    SLEEP(100);
+
+    TERMINATE_PROCESS(-1, &Z502_REG9);
+    printf("ERROR: PID %ld Test1x should be terminated but isn't.\n", (int)Z502_REG2);
+
+} /* End of test1x    */
+
 void test1a(void) {
     static INT32   SleepTime = 100;
     static INT32   time1, time2;
 
     printf("This is Release %s:  Test 1a\n", CURRENT_REL);
     GET_TIME_OF_DAY(&time1);
+
+    //CREATE_PROCESS("test1a_a", test1a_a, 10, &Z502_REG1, &Z502_REG9);
 
     SLEEP(SleepTime);
 
