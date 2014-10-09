@@ -5,6 +5,7 @@
 List*        gGlobalProcessList;
 MinPriQueue* gTimerQueue;
 MaxPriQueue* gReadyQueue;
+List*        gSuspendedList;
 PCB*         gRunningProcess;
 
 ProcessManager* gProcessManager;
@@ -159,7 +160,7 @@ void PopFromTimerQueue(PCB** ppcb)
 void PushToTimerQueue(PCB* pcb)
 {
     MinPriQueuePush(gTimerQueue, pcb->timerQueueKey, pcb);
-    pcb->state = PROCESS_STATE_SLEEP;
+    pcb->state = PROCESS_STATE_SLEEPING;
 }
 //****************************************************************************
 void PopFromReadyQueue(PCB** ppcb)
@@ -290,6 +291,7 @@ void ProcessManagerInitialize()
     MinPriQueueInit(gTimerQueue, MAX_PROCESS_NUM);
     gReadyQueue = ALLOC(MaxPriQueue);
     MaxPriQueueInit(gReadyQueue, MAX_PROCESS_NUM);
+    gSuspendedList = ALLOC(List);
     gRunningProcess = NULL;
 }
 //****************************************************************************

@@ -3,9 +3,11 @@
 
 #include "syscalls.h"
 
-void   SVCGetProcessID(SYSTEM_CALL_DATA* SystemCallData);
-void   SVCTerminateProcess(SYSTEM_CALL_DATA* SystemCallData);
-void   SVCCreateProcess(SYSTEM_CALL_DATA* SystemCallData);
-void   SVCStartTimer(SYSTEM_CALL_DATA* SystemCallData);
+void SVCGetProcessID(SYSTEM_CALL_DATA* SystemCallData);
+void SVCTerminateProcess(SYSTEM_CALL_DATA* SystemCallData);
+void SVCCreateProcess(SYSTEM_CALL_DATA* SystemCallData);
+void SVCStartTimer(SYSTEM_CALL_DATA* SystemCallData);
+void SVCSuspendProcess(SYSTEM_CALL_DATA* SystemCallData);
+void SVCResumeProcess(SYSTEM_CALL_DATA* SystemCallData);
 
 #endif

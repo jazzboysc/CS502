@@ -144,6 +144,14 @@ void    svc( SYSTEM_CALL_DATA *SystemCallData ) {
         SVCTerminateProcess(SystemCallData);
         break;
 
+    case SYSNUM_SUSPEND_PROCESS:
+        SVCSuspendProcess(SystemCallData);
+        break;
+
+    case SYSNUM_RESUME_PROCESS:
+        SVCResumeProcess(SystemCallData);
+        break;
+
     default:
         printf("ERROR!  call_type not recognized!\n");
         printf("Call_type is - %i\n", call_type);

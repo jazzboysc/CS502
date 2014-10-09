@@ -53,6 +53,8 @@ void SVCTerminateProcess(SYSTEM_CALL_DATA* SystemCallData)
 
     if( (INT32)SystemCallData->Argument[0] == -2 )
     {
+        LeaveCriticalSection(0);
+
         // Terminate all.
         Z502Halt();
     }
@@ -68,6 +70,8 @@ void SVCTerminateProcess(SYSTEM_CALL_DATA* SystemCallData)
 
         if( processID == 1 )
         {
+            LeaveCriticalSection(0);
+
             Z502Halt();
         }
     }
@@ -82,6 +86,8 @@ void SVCTerminateProcess(SYSTEM_CALL_DATA* SystemCallData)
         {
             *(long*)SystemCallData->Argument[1] =
                 ERR_PROCESS_ID_NOT_FOUND;
+
+            LeaveCriticalSection(0);
             return;
         }
 
@@ -217,5 +223,61 @@ void SVCStartTimer(SYSTEM_CALL_DATA* SystemCallData)
     LeaveCriticalSection(0);
 
     gScheduler->OnProcessSleep();
+}
+//****************************************************************************
+void SVCSuspendProcess(SYSTEM_CALL_DATA* SystemCallData)
+{
+    EnterCriticalSection(0);
+
+    long processID = (long)SystemCallData->Argument[0];
+    PCB* pcb = gProcessManager->GetPCBByID(processID);
+
+    if( !pcb )
+    {
+        // Process doesn't exist.
+        *(long*)SystemCallData->Argument[1] =
+            ERR_PROCESS_ID_NOT_FOUND;
+        return;
+    }
+
+    if( pcb->state == PROCESS_STATE_SUSPENDED )
+    {
+        // Process is alread suspended.
+        *(long*)SystemCallData->Argument[1] =
+            ERR_PROCESS_ALREADY_SUSPENDED;
+
+        LeaveCriticalSection(0);
+        return;
+    }
+
+    if( pcb->state == PROCESS_STATE_SLEEPING )
+    {
+        // Process is sleeping, delay suspension.
+        pcb->state = PROCESS_STATE_SUSPENDING;
+
+        LeaveCriticalSection(0);
+        return;
+    }
+
+    LeaveCriticalSection(0);
+}
+//****************************************************************************
+void SVCResumeProcess(SYSTEM_CALL_DATA* SystemCallData)
+{
+    EnterCriticalSection(0);
+
+    long processID = (long)SystemCallData->Argument[0];
+    PCB* pcb = gProcessManager->GetPCBByID(processID);
+
+    if( !pcb )
+    {
+        *(long*)SystemCallData->Argument[1] =
+            ERR_PROCESS_ID_NOT_FOUND;
+
+        LeaveCriticalSection(0);
+        return;
+    }
+
+    LeaveCriticalSection(0);
 }
 //****************************************************************************
