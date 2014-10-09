@@ -59,6 +59,9 @@
     <ClInclude Include="memory.h">
       <Filter>Modules</Filter>
     </ClInclude>
+    <ClInclude Include="critical_section.h">
+      <Filter>Modules</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="sample.c">
@@ -95,6 +98,9 @@
       <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="scheduler.c">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="critical_section.c">
       <Filter>Modules</Filter>
     </ClCompile>
   </ItemGroup>

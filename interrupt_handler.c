@@ -2,10 +2,13 @@
 #include "process_manager.h"
 #include "scheduler.h"
 #include "os_common.h"
+#include "critical_section.h"
 
 //****************************************************************************
 void IHTimerInterrupt()
 {
+    EnterCriticalSection(1);
+
     int timerQueueProcessCount = gProcessManager->GetTimerQueueProcessCount();
     if( timerQueueProcessCount == 0 )
     {
@@ -20,7 +23,7 @@ void IHTimerInterrupt()
 
     // Wake the first process in timer queue and see if it is the scheduler.
     gProcessManager->PopFromTimerQueue(&pcb);
-    if( pcb->type == 0 )
+    if( pcb->type == PROCESS_TYPE_SCHEDULER )
     {
         schedulerPCB = pcb;
     }
@@ -48,7 +51,7 @@ void IHTimerInterrupt()
     {
         gProcessManager->PopFromTimerQueue(&otherPCB);
 
-        if( otherPCB->type == 0 )
+        if( otherPCB->type == PROCESS_TYPE_SCHEDULER )
         {
             schedulerPCB = otherPCB;
         }
@@ -70,6 +73,8 @@ void IHTimerInterrupt()
 
         MEM_WRITE(Z502TimerStart, &deltaTime);
     }
+
+    LeaveCriticalSection(1);
 
     if( schedulerPCB )
     {

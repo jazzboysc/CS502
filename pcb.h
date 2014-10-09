@@ -7,6 +7,9 @@
 #define PROCESS_STATE_RUNNING 3
 #define PROCESS_STATE_DEAD    4
 
+#define PROCESS_TYPE_SCHEDULER 0
+#define PROCESS_TYPE_USER      1
+
 typedef void(*ProcessEntry)(void);
 typedef struct _PCB
 {

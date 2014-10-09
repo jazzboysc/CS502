@@ -3,6 +3,7 @@
 #include "os_common.h"
 #include "process_manager.h"
 #include "scheduler.h"
+#include "critical_section.h"
 
 //****************************************************************************
 void SVCGetProcessID(SYSTEM_CALL_DATA* SystemCallData)
@@ -48,6 +49,8 @@ void SVCGetProcessID(SYSTEM_CALL_DATA* SystemCallData)
 //****************************************************************************
 void SVCTerminateProcess(SYSTEM_CALL_DATA* SystemCallData)
 {
+    EnterCriticalSection(0);
+
     if( (INT32)SystemCallData->Argument[0] == -2 )
     {
         // Terminate all.
@@ -89,6 +92,8 @@ void SVCTerminateProcess(SYSTEM_CALL_DATA* SystemCallData)
     {
         *(long*)SystemCallData->Argument[1] = ERR_SUCCESS;
     }
+
+    LeaveCriticalSection(0);
 
     gScheduler->OnProcessTerminate();
 }
@@ -146,12 +151,14 @@ void SVCCreateProcess(SYSTEM_CALL_DATA* SystemCallData)
         return;
     }
 
+    EnterCriticalSection(0);
     gProcessManager->CreateProcess((char*)SystemCallData->Argument[0],
                                    1,
                                    (ProcessEntry)SystemCallData->Argument[1],
                                    (int)SystemCallData->Argument[2],
                                    (long*)SystemCallData->Argument[3],
                                    (long*)SystemCallData->Argument[4]);
+    LeaveCriticalSection(0);
 }
 //****************************************************************************
 void SVCStartTimer(SYSTEM_CALL_DATA* SystemCallData)
@@ -159,6 +166,8 @@ void SVCStartTimer(SYSTEM_CALL_DATA* SystemCallData)
     INT32 currentTime;
     INT32 Status;
     INT32 sleepTime;
+
+    EnterCriticalSection(0);
 
     // Find caller's PCB.
     PCB* pcb = gProcessManager->GetRunningProcess();
@@ -204,6 +213,8 @@ void SVCStartTimer(SYSTEM_CALL_DATA* SystemCallData)
         //    printf("SVCStartTimer: Timer is busy\n");
         //}
     }
+
+    LeaveCriticalSection(0);
 
     gScheduler->OnProcessSleep();
 }

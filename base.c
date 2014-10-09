@@ -27,6 +27,7 @@
 #include "process_manager.h"
 #include "scheduler.h"
 #include "interrupt_handler.h"
+#include "critical_section.h"
 
 extern void          *TO_VECTOR [];
 
@@ -187,6 +188,6 @@ void    osInit( int argc, char *argv[]  ) {
     ProcessManagerInitialize();
     SchedulerInitialize();
 
-    PCB* pcb = gProcessManager->CreateProcess("test1c", 1, test1c, 20, 0, 0);
+    PCB* pcb = gProcessManager->CreateProcess("test1d", 1, test1d, 20, 0, 0);
     gScheduler->Dispatch();
 }                                               // End of osInit

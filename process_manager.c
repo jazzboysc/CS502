@@ -154,7 +154,6 @@ void PopFromTimerQueue(PCB** ppcb)
     HeapItem item;
     MinPriQueuePop(gTimerQueue, &item);
     *ppcb = (PCB*)item.data;
-    //(*ppcb)->state = PROCESS_STATE_UNKNOWN;
 }
 //****************************************************************************
 void PushToTimerQueue(PCB* pcb)
@@ -168,7 +167,6 @@ void PopFromReadyQueue(PCB** ppcb)
     HeapItem item;
     MaxPriQueuePop(gReadyQueue, &item);
     *ppcb = (PCB*)item.data;
-    //(*ppcb)->state = PROCESS_STATE_UNKNOWN;
 }
 //****************************************************************************
 void PushToReadyQueue(PCB* pcb)
@@ -207,7 +205,7 @@ PCB* CreateProcess(char* name, int type, ProcessEntry entry, int priority,
     }
 
     // Only add user process to global list and queue.
-    if( type == 1 )
+    if( type == PROCESS_TYPE_USER )
     {
         // Add to global process list.
         ListNode* pcbNode = ALLOC(ListNode);
