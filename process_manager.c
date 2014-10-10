@@ -94,28 +94,29 @@ PCB* GetPCBByContext(void* context)
 //****************************************************************************
 void RemovePCBFromGlobalListByID(long processID)
 {
-    ListNode* currentNode = gGlobalProcessList->head;
-    if( ((PCB*)currentNode->data)->processID == processID )
+    if( ((PCB*)gGlobalProcessList->head->data)->processID == processID )
     {
-        free(gGlobalProcessList->head);
-        gGlobalProcessList->head = 0;
-        currentNode = 0;
+        ListNode* temp = gGlobalProcessList->head;
+        gGlobalProcessList->head = gGlobalProcessList->head->next;
+        DEALLOC(temp);
         gGlobalProcessList->count--;
 
         return;
     }
 
-    ListNode* prevNode = currentNode;
-    currentNode = currentNode->next;
+    ListNode* prevNode = gGlobalProcessList->head;
+    ListNode* currentNode = prevNode->next;
     while( currentNode )
     {
         if( ((PCB*)currentNode->data)->processID == processID )
         {
             prevNode->next = currentNode->next;
-            free(currentNode);
+            DEALLOC(currentNode);
             gGlobalProcessList->count--;
             break;
         }
+
+        prevNode = currentNode;
         currentNode = currentNode->next;
     }
 
@@ -266,7 +267,9 @@ int IsAllDead()
     for( int i = 0; i < gGlobalProcessList->count; ++i )
     {
         PCB* pcb = (PCB*)currentProcessNode->data;
-        if( pcb->type == PROCESS_TYPE_USER && pcb->state != PROCESS_STATE_DEAD )
+        if( pcb->type == PROCESS_TYPE_USER && 
+            pcb->state != PROCESS_STATE_DEAD &&
+            pcb->state != PROCESS_STATE_SUSPENDED )
         {
             isAllDead = 0;
             break;
@@ -288,17 +291,18 @@ void AddToSuspendedList(PCB* pcb)
 //****************************************************************************
 void RemoveFromSuspendedListByID(long processID)
 {
-    ListNode* currentNode = gSuspendedList->head;
-    if( ((PCB*)currentNode->data)->processID == processID )
+    if( ((PCB*)gSuspendedList->head->data)->processID == processID )
     {
-        DEALLOC(gSuspendedList->head);
+        ListNode* temp = gSuspendedList->head;
+        gSuspendedList->head = gSuspendedList->head->next;
+        DEALLOC(temp);
         gSuspendedList->count--;
 
         return;
     }
 
-    ListNode* prevNode = currentNode;
-    currentNode = currentNode->next;
+    ListNode* prevNode = gSuspendedList->head;
+    ListNode* currentNode = prevNode->next;
     while( currentNode )
     {
         if( ((PCB*)currentNode->data)->processID == processID )
@@ -308,6 +312,8 @@ void RemoveFromSuspendedListByID(long processID)
             gSuspendedList->count--;
             break;
         }
+
+        prevNode = currentNode;
         currentNode = currentNode->next;
     }
 
