@@ -5,6 +5,23 @@
 #include "critical_section.h"
 
 //****************************************************************************
+void OnProcessWake(PCB* pcb)
+{
+    if( pcb->state == PROCESS_STATE_SLEEPING )
+    {
+        // Only push user process to ready queue.
+        gProcessManager->PushToReadyQueue(pcb);
+    }
+    else if( pcb->state == PROCESS_STATE_SUSPENDING )
+    {
+        gProcessManager->AddToSuspendedList(pcb);
+    }
+    else
+    {
+        assert(pcb->state == PROCESS_STATE_DEAD);
+    }
+}
+//****************************************************************************
 void IHTimerInterrupt()
 {
     EnterCriticalSection(1);
@@ -14,6 +31,7 @@ void IHTimerInterrupt()
     {
         // Something is wrong. The process who set the timer has been removed. 
         //assert(0);
+        LeaveCriticalSection(1);
         return;
     }
 
@@ -29,8 +47,7 @@ void IHTimerInterrupt()
     }
     else
     {
-        // Only push user process to ready queue.
-        gProcessManager->PushToReadyQueue(pcb);
+        OnProcessWake(pcb);
     }
 
     // Check timer queue and see if there are other sleeping processes need to 
@@ -56,8 +73,7 @@ void IHTimerInterrupt()
         }
         else
         {
-            // Only push user process to ready queue.
-            gProcessManager->PushToReadyQueue(otherPCB);
+            OnProcessWake(otherPCB);
         }
     }
 

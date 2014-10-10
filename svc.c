@@ -228,9 +228,9 @@ void SVCSuspendProcess(SYSTEM_CALL_DATA* SystemCallData)
     long processID = (long)SystemCallData->Argument[0];
     PCB* pcb = gProcessManager->GetPCBByID(processID);
 
-    if( !pcb )
+    if( !pcb || pcb->state == PROCESS_STATE_DEAD )
     {
-        // Process doesn't exist.
+        // Process doesn't exist or already terminated.
         *(long*)SystemCallData->Argument[1] =
             ERR_PROCESS_ID_NOT_FOUND;
         return;
@@ -250,9 +250,17 @@ void SVCSuspendProcess(SYSTEM_CALL_DATA* SystemCallData)
     {
         // Process is sleeping, delay suspension.
         pcb->state = PROCESS_STATE_SUSPENDING;
+        *(long*)SystemCallData->Argument[1] = ERR_SUCCESS;
 
         LeaveCriticalSection(0);
         return;
+    }
+
+    if( pcb->state == PROCESS_STATE_READY )
+    {
+        gProcessManager->RemoveFromReadyQueueByID(pcb->processID);
+        gProcessManager->AddToSuspendedList(pcb);
+        *(long*)SystemCallData->Argument[1] = ERR_SUCCESS;
     }
 
     LeaveCriticalSection(0);
@@ -265,13 +273,35 @@ void SVCResumeProcess(SYSTEM_CALL_DATA* SystemCallData)
     long processID = (long)SystemCallData->Argument[0];
     PCB* pcb = gProcessManager->GetPCBByID(processID);
 
-    if( !pcb )
+    if( !pcb || pcb->state == PROCESS_STATE_DEAD )
     {
         *(long*)SystemCallData->Argument[1] =
             ERR_PROCESS_ID_NOT_FOUND;
 
         LeaveCriticalSection(0);
         return;
+    }
+
+    if( pcb->state != PROCESS_STATE_SUSPENDED &&
+        pcb->state != PROCESS_STATE_SUSPENDING )
+    {
+        *(long*)SystemCallData->Argument[1] =
+            ERR_PROCESS_ALREADY_RESUMED;
+
+        LeaveCriticalSection(0);
+        return;
+    }
+
+    if( pcb->state == PROCESS_STATE_SUSPENDING )
+    {
+        pcb->state = PROCESS_STATE_SLEEPING;
+        *(long*)SystemCallData->Argument[1] = ERR_SUCCESS;
+    }
+    else
+    {
+        gProcessManager->RemoveFromSuspendedListByID(pcb->processID);
+        gProcessManager->PushToReadyQueue(pcb);
+        *(long*)SystemCallData->Argument[1] = ERR_SUCCESS;
     }
 
     LeaveCriticalSection(0);

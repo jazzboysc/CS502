@@ -278,6 +278,42 @@ int IsAllDead()
     return isAllDead;
 }
 //****************************************************************************
+void AddToSuspendedList(PCB* pcb)
+{
+    ListNode* pcbNode = ALLOC(ListNode);
+    pcbNode->data = (void*)pcb;
+    ListAttach(gSuspendedList, pcbNode);
+    pcb->state = PROCESS_STATE_SUSPENDED;
+}
+//****************************************************************************
+void RemoveFromSuspendedListByID(long processID)
+{
+    ListNode* currentNode = gSuspendedList->head;
+    if( ((PCB*)currentNode->data)->processID == processID )
+    {
+        DEALLOC(gSuspendedList->head);
+        gSuspendedList->count--;
+
+        return;
+    }
+
+    ListNode* prevNode = currentNode;
+    currentNode = currentNode->next;
+    while( currentNode )
+    {
+        if( ((PCB*)currentNode->data)->processID == processID )
+        {
+            prevNode->next = currentNode->next;
+            DEALLOC(currentNode);
+            gSuspendedList->count--;
+            break;
+        }
+        currentNode = currentNode->next;
+    }
+
+    return;
+}
+//****************************************************************************
 
 //****************************************************************************
 void ProcessManagerInitialize()
@@ -304,6 +340,8 @@ void ProcessManagerInitialize()
     gProcessManager->SetRunningProcess = SetRunningProcess;
     gProcessManager->GetRunningProcess = GetRunningProcess;
     gProcessManager->IsAllDead = IsAllDead;
+    gProcessManager->AddToSuspendedList = AddToSuspendedList;
+    gProcessManager->RemoveFromSuspendedListByID = RemoveFromSuspendedListByID;
 
     // Init OS global variables.
     gGlobalProcessList = ALLOC(List);
