@@ -23,11 +23,15 @@ void MakeReadyToRun()
 //****************************************************************************
 void OnRedispatch(void)
 {
-    printf("User process ends. No other uers process is ready. Switch to scheduler... \n");
     while( 1 )
     {
         INT32 Status;
         MEM_READ(Z502TimerStatus, &Status);
+
+        if( gProcessManager->IsAllDead() == 1 )
+        {
+            Z502Halt();
+        }
 
         if( gProcessManager->GetReadyQueueProcessCount() > 0 )
         {

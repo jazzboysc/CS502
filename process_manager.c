@@ -258,7 +258,26 @@ PCB* GetRunningProcess()
     return gRunningProcess;
 }
 //****************************************************************************
+int IsAllDead()
+{
+    int isAllDead = 1;
 
+    ListNode* currentProcessNode = gGlobalProcessList->head;
+    for( int i = 0; i < gGlobalProcessList->count; ++i )
+    {
+        PCB* pcb = (PCB*)currentProcessNode->data;
+        if( pcb->type == PROCESS_TYPE_USER && pcb->state != PROCESS_STATE_DEAD )
+        {
+            isAllDead = 0;
+            break;
+        }
+
+        currentProcessNode = currentProcessNode->next;
+    }
+
+    return isAllDead;
+}
+//****************************************************************************
 
 //****************************************************************************
 void ProcessManagerInitialize()
@@ -284,6 +303,7 @@ void ProcessManagerInitialize()
     gProcessManager->TerminateProcess = TerminateProcess;
     gProcessManager->SetRunningProcess = SetRunningProcess;
     gProcessManager->GetRunningProcess = GetRunningProcess;
+    gProcessManager->IsAllDead = IsAllDead;
 
     // Init OS global variables.
     gGlobalProcessList = ALLOC(List);

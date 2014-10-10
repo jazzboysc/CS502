@@ -23,6 +23,7 @@ typedef void (*ProcessManagerTerminateAllProcess)();
 typedef void (*ProcessManagerTerminateProcess)(PCB* pcb);
 typedef void (*ProcessManagerSetRunningProcess)(PCB* pcb);
 typedef PCB* (*ProcessManagerGetRunningProcess)();
+typedef int  (*ProcessManagerIsAllDead)();
 
 // Process manager is a global singleton object used to manage processes.
 typedef struct ProcessManager
@@ -48,6 +49,8 @@ typedef struct ProcessManager
 
     ProcessManagerSetRunningProcess            SetRunningProcess;
     ProcessManagerGetRunningProcess            GetRunningProcess;
+
+    ProcessManagerIsAllDead                    IsAllDead;
 
 } ProcessManager;
 

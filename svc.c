@@ -49,6 +49,8 @@ void SVCGetProcessID(SYSTEM_CALL_DATA* SystemCallData)
 //****************************************************************************
 void SVCTerminateProcess(SYSTEM_CALL_DATA* SystemCallData)
 {
+    int terminateMyself = 0;
+
     EnterCriticalSection(0);
 
     if( (INT32)SystemCallData->Argument[0] == -2 )
@@ -61,6 +63,7 @@ void SVCTerminateProcess(SYSTEM_CALL_DATA* SystemCallData)
     else if( (INT32)SystemCallData->Argument[0] == -1 )
     {
         // Terminate myself.
+        terminateMyself = 1;
 
         // Find caller's PCB.
         PCB* pcb = gProcessManager->GetRunningProcess();
@@ -91,6 +94,12 @@ void SVCTerminateProcess(SYSTEM_CALL_DATA* SystemCallData)
             return;
         }
 
+        if( pcb == gProcessManager->GetRunningProcess() )
+        {
+            // Terminate myself.
+            terminateMyself = 1;
+        }
+
         gProcessManager->TerminateProcess(pcb);
     }
 
@@ -101,7 +110,10 @@ void SVCTerminateProcess(SYSTEM_CALL_DATA* SystemCallData)
 
     LeaveCriticalSection(0);
 
-    gScheduler->OnProcessTerminate();
+    if( terminateMyself == 1 )
+    {
+        gScheduler->OnProcessTerminate();
+    }
 }
 //****************************************************************************
 void SVCCreateProcess(SYSTEM_CALL_DATA* SystemCallData)
@@ -196,28 +208,12 @@ void SVCStartTimer(SYSTEM_CALL_DATA* SystemCallData)
     gProcessManager->PushToTimerQueue(pcb);
 
     MEM_READ(Z502TimerStatus, &Status);
-    //if( Status == DEVICE_FREE )
-    //{
-    //    printf("SVCStartTimer: Timer is free\n");
-    //}
-    //else
-    //{
-    //    printf("SVCStartTimer: Timer is busy\n");
-    //}
 
     if( needRestartTimer == 1 )
     {
         MEM_WRITE(Z502TimerStart, &sleepTime);
 
         MEM_READ(Z502TimerStatus, &Status);
-        //if( Status == DEVICE_FREE )
-        //{
-        //    printf("SVCStartTimer: Timer is free\n");
-        //}
-        //else
-        //{
-        //    printf("SVCStartTimer: Timer is busy\n");
-        //}
     }
 
     LeaveCriticalSection(0);

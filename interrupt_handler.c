@@ -32,7 +32,6 @@ void IHTimerInterrupt()
         // Only push user process to ready queue.
         gProcessManager->PushToReadyQueue(pcb);
     }
-    printf("Waking process %d\n", pcb->processID);
 
     // Check timer queue and see if there are other sleeping processes need to 
     // be awakened since multiple processes may want to wake at the same time.
