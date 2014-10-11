@@ -89,6 +89,17 @@ void    fault_handler( void )
 
     printf( "Fault_handler: Found vector type %d with value %d\n",
                         device_id, status );
+
+    switch( device_id )
+    {
+    case 4:
+        Z502Halt();
+        break;
+
+    default:
+        break;
+    }
+
     // Clear out this device - we're done with it
     MEM_WRITE(Z502InterruptClear, &Index );
 }                                       /* End of fault_handler */
@@ -152,6 +163,10 @@ void    svc( SYSTEM_CALL_DATA *SystemCallData ) {
         SVCResumeProcess(SystemCallData);
         break;
 
+    case SYSNUM_CHANGE_PRIORITY:
+        SVCChangeProcessPriority(SystemCallData);
+        break;
+
     default:
         printf("ERROR!  call_type not recognized!\n");
         printf("Call_type is - %i\n", call_type);
@@ -196,6 +211,6 @@ void    osInit( int argc, char *argv[]  ) {
     ProcessManagerInitialize();
     SchedulerInitialize();
 
-    PCB* pcb = gProcessManager->CreateProcess("test1f", 1, test1f, 20, 0, 0);
+    PCB* pcb = gProcessManager->CreateProcess("test1g", 1, test1g, 20, 0, 0);
     gScheduler->Dispatch();
 }                                               // End of osInit

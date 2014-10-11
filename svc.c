@@ -130,7 +130,8 @@ void SVCCreateProcess(SYSTEM_CALL_DATA* SystemCallData)
         return;
     }
 
-    if( (INT32)SystemCallData->Argument[2] == ILLEGAL_PRIORITY )
+    if( (INT32)SystemCallData->Argument[2] < LEGAL_PRIORITY_MIN ||
+        (INT32)SystemCallData->Argument[2] > LEGAL_PRIORITY_MAX )
     {
         if( dstErr )
         {
@@ -304,6 +305,44 @@ void SVCResumeProcess(SYSTEM_CALL_DATA* SystemCallData)
         *(long*)SystemCallData->Argument[1] = ERR_SUCCESS;
     }
 
+    LeaveCriticalSection(0);
+}
+//****************************************************************************
+void SVCChangeProcessPriority(SYSTEM_CALL_DATA* SystemCallData)
+{
+    EnterCriticalSection(0);
+
+    if( (INT32)SystemCallData->Argument[1] < LEGAL_PRIORITY_MIN ||
+        (INT32)SystemCallData->Argument[1] > LEGAL_PRIORITY_MAX )
+    {
+        *(long*)SystemCallData->Argument[2] =
+            ERR_CHANGE_PROCESS_ILLEGAL_PRIORITY;
+
+        LeaveCriticalSection(0);
+        return;
+    }
+
+    long processID = (long)SystemCallData->Argument[0];
+    PCB* pcb = gProcessManager->GetPCBByID(processID);
+
+    if( !pcb || pcb->state == PROCESS_STATE_DEAD )
+    {
+        *(long*)SystemCallData->Argument[2] =
+            ERR_PROCESS_ID_NOT_FOUND;
+
+        LeaveCriticalSection(0);
+        return;
+    }
+
+    pcb->priority = (INT32)SystemCallData->Argument[1];
+    pcb->readyQueueKey = pcb->priority;
+    if( pcb->state == PROCESS_STATE_READY )
+    {
+        gProcessManager->RemoveFromReadyQueueByID(pcb->processID);
+        gProcessManager->PushToReadyQueue(pcb);
+    }
+
+    *(long*)SystemCallData->Argument[2] = ERR_SUCCESS;
     LeaveCriticalSection(0);
 }
 //****************************************************************************
