@@ -323,7 +323,15 @@ void SVCChangeProcessPriority(SYSTEM_CALL_DATA* SystemCallData)
     }
 
     long processID = (long)SystemCallData->Argument[0];
-    PCB* pcb = gProcessManager->GetPCBByID(processID);
+    PCB* pcb = NULL;
+    if( processID == -1 )
+    {
+        pcb = gProcessManager->GetRunningProcess();
+    }
+    else
+    {
+        pcb = gProcessManager->GetPCBByID(processID);
+    }
 
     if( !pcb || pcb->state == PROCESS_STATE_DEAD )
     {
@@ -340,6 +348,10 @@ void SVCChangeProcessPriority(SYSTEM_CALL_DATA* SystemCallData)
     {
         gProcessManager->RemoveFromReadyQueueByID(pcb->processID);
         gProcessManager->PushToReadyQueue(pcb);
+    }
+    else
+    {
+        int iStop = 0;
     }
 
     *(long*)SystemCallData->Argument[2] = ERR_SUCCESS;

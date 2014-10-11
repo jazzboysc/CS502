@@ -4,7 +4,7 @@
 // Global data managed by process manager.
 List*        gGlobalProcessList;
 MinPriQueue* gTimerQueue;
-MaxPriQueue* gReadyQueue;
+MinPriQueue* gReadyQueue;
 List*        gSuspendedList;
 PCB*         gRunningProcess;
 
@@ -145,7 +145,7 @@ void RemoveFromReadyQueueByID(long processID)
         if( ((PCB*)item->data)->processID == processID )
         {
             HeapItem temp;
-            MaxPriQueueRemove(gReadyQueue, i, &temp);
+            MinPriQueueRemove(gReadyQueue, i, &temp);
             break;
         }
     }
@@ -167,13 +167,13 @@ void PushToTimerQueue(PCB* pcb)
 void PopFromReadyQueue(PCB** ppcb)
 {
     HeapItem item;
-    MaxPriQueuePop(gReadyQueue, &item);
+    MinPriQueuePop(gReadyQueue, &item);
     *ppcb = (PCB*)item.data;
 }
 //****************************************************************************
 void PushToReadyQueue(PCB* pcb)
 {
-    MaxPriQueuePush(gReadyQueue, pcb->readyQueueKey, pcb);
+    MinPriQueuePush(gReadyQueue, pcb->readyQueueKey, pcb);
     pcb->state = PROCESS_STATE_READY;
 }
 //****************************************************************************
@@ -353,8 +353,8 @@ void ProcessManagerInitialize()
     gGlobalProcessList = ALLOC(List);
     gTimerQueue = ALLOC(MinPriQueue);
     MinPriQueueInit(gTimerQueue, MAX_PROCESS_NUM);
-    gReadyQueue = ALLOC(MaxPriQueue);
-    MaxPriQueueInit(gReadyQueue, MAX_PROCESS_NUM);
+    gReadyQueue = ALLOC(MinPriQueue);
+    MinPriQueueInit(gReadyQueue, MAX_PROCESS_NUM);
     gSuspendedList = ALLOC(List);
     gRunningProcess = NULL;
 }
