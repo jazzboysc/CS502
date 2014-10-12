@@ -69,7 +69,9 @@ typedef         int                             BOOL;
 #define THREAD_PRIORITY_HIGH          THREAD_PRIORITY_TIME_CRITICAL
 #define LOCK_TYPE                     HANDLE
 // Eliminates warnings of deprecated functions with Visual C++
+#ifndef _CRT_SECURE_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS
+#endif
 #endif
 #ifndef NT
 #define THREAD_PRIORITY_LOW                 1

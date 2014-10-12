@@ -195,6 +195,7 @@ PCB* CreateProcess(char* name, int type, ProcessEntry entry, int priority,
     strcpy(pcb->name, name);
     pcb->name[len] = 0;
     pcb->processID = ++gCurrentProcessID;
+    pcb->messages = ALLOC(List);
 
     // Return process id to the caller.
     if( dstID )
@@ -234,6 +235,7 @@ void TerminateAllProcess()
         RemoveFromTimerQueueByID(pcb->processID);
         RemoveFromReadyQueueByID(pcb->processID);
 
+        DEALLOC(pcb->messages);
         DEALLOC(pcb);
 
         currentProcessNode = currentProcessNode->next;
@@ -320,6 +322,59 @@ void RemoveFromSuspendedListByID(long processID)
     return;
 }
 //****************************************************************************
+void AddMessage(PCB* pcb, Message* msg)
+{
+    ListNode* node = ALLOC(ListNode);
+    node->data = (void*)msg;
+    ListAttach(pcb->messages, node);
+}
+//****************************************************************************
+Message* RemoveMessageBySenderID(PCB* pcb, long processID)
+{
+    Message* res = NULL;
+
+    List* messages = pcb->messages;
+    if( messages->count == 0 )
+    {
+        return res;
+    }
+
+    if( ((Message*)messages->head->data)->senderProcessID == processID )
+    {
+        res = (Message*)messages->head->data;
+        messages->count--;
+        return res;
+    }
+
+    ListNode* prev = messages->head;
+    ListNode* current = prev->next;
+    while( current )
+    {
+        if( ((Message*)current->data)->senderProcessID == processID )
+        {
+            prev->next = current->next;
+            res = (Message*)current->data;
+            messages->count--;
+            break;
+        }
+
+        prev = current;
+        current = current->next;
+    }
+
+    return res;
+}
+//****************************************************************************
+int GetMessageListCount(PCB* pcb)
+{
+    if( !pcb->messages )
+    {
+        return 0;
+    }
+
+    return pcb->messages->count;
+}
+//****************************************************************************
 
 //****************************************************************************
 void ProcessManagerInitialize()
@@ -348,6 +403,9 @@ void ProcessManagerInitialize()
     gProcessManager->IsAllDead = IsAllDead;
     gProcessManager->AddToSuspendedList = AddToSuspendedList;
     gProcessManager->RemoveFromSuspendedListByID = RemoveFromSuspendedListByID;
+    gProcessManager->AddMessage = AddMessage;
+    gProcessManager->RemoveMessageBySenderID = RemoveMessageBySenderID;
+    gProcessManager->GetMessageListCount = GetMessageListCount;
 
     // Init OS global variables.
     gGlobalProcessList = ALLOC(List);

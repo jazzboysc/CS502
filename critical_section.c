@@ -9,17 +9,7 @@ void EnterCriticalSection(int i)
     gFlags[i] = 1;
     int j = (i + 1) % 2;
     gTurn = j;
-    while( gFlags[j] == 1 && gTurn == j )
-    {
-        if( i == 0 )
-        {
-            //printf("User process is waiting for entering critical section.\n");
-        }
-        else
-        {
-            //printf("Interrupt handler is waiting for entering critical section.\n");
-        }
-    }
+    while( gFlags[j] == 1 && gTurn == j );
 }
 //****************************************************************************
 void LeaveCriticalSection(int i)

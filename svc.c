@@ -1,5 +1,6 @@
 #include "svc.h"
 #include "pcb.h"
+#include "message.h"
 #include "os_common.h"
 #include "process_manager.h"
 #include "scheduler.h"
@@ -355,6 +356,116 @@ void SVCChangeProcessPriority(SYSTEM_CALL_DATA* SystemCallData)
     }
 
     *(long*)SystemCallData->Argument[2] = ERR_SUCCESS;
+    LeaveCriticalSection(0);
+}
+//****************************************************************************
+void SVCSendMessage(SYSTEM_CALL_DATA* SystemCallData)
+{
+    EnterCriticalSection(0);
+
+    long processID = (long)SystemCallData->Argument[0];
+    PCB* receiver = NULL;
+    if( processID == -1 )
+    {
+        receiver = gProcessManager->GetRunningProcess();
+    }
+    else
+    {
+        receiver = gProcessManager->GetPCBByID(processID);
+    }
+
+    if( !receiver || receiver->state == PROCESS_STATE_DEAD )
+    {
+        *(long*)SystemCallData->Argument[3] =
+            ERR_PROCESS_ID_NOT_FOUND;
+
+        LeaveCriticalSection(0);
+        return;
+    }
+
+    int msgCount = gProcessManager->GetMessageListCount(receiver);
+    if( msgCount >= MAX_MESSAGE_LIST_NUM )
+    {
+        *(long*)SystemCallData->Argument[3] =
+            ERR_REACH_MAX_MSG_COUNT;
+
+        LeaveCriticalSection(0);
+        return;
+    }
+
+    if( (INT32)SystemCallData->Argument[2] > LEGAL_MESSAGE_LENGTH_MAX )
+    {
+        *(long*)SystemCallData->Argument[3] =
+            ERR_ILEGAL_MESSAGE_LENGTH;
+
+        LeaveCriticalSection(0);
+        return;
+    }
+
+    char* msg = (char*)SystemCallData->Argument[1];
+    Message* m = ALLOC(Message);
+    m->senderProcessID = gProcessManager->GetRunningProcess()->processID;
+    m->length = strlen(msg);
+    strcpy(m->buffer, msg);
+
+    gProcessManager->AddMessage(receiver, m);
+
+    *(long*)SystemCallData->Argument[3] = ERR_SUCCESS;
+    LeaveCriticalSection(0);
+}
+//****************************************************************************
+void SVCReceiveMessage(SYSTEM_CALL_DATA* SystemCallData)
+{
+    EnterCriticalSection(0);
+
+    if( (INT32)SystemCallData->Argument[2] > LEGAL_MESSAGE_LENGTH_MAX )
+    {
+        *(long*)SystemCallData->Argument[5] =
+            ERR_ILEGAL_MESSAGE_LENGTH;
+
+        LeaveCriticalSection(0);
+        return;
+    }
+
+    long processID = (long)SystemCallData->Argument[0];
+    PCB* sender = NULL;
+    if( processID == -1 )
+    {
+        sender = gProcessManager->GetRunningProcess();
+    }
+    else
+    {
+        sender = gProcessManager->GetPCBByID(processID);
+    }
+
+    if( !sender )
+    {
+        *(long*)SystemCallData->Argument[5] =
+            ERR_PROCESS_ID_NOT_FOUND;
+
+        LeaveCriticalSection(0);
+        return;
+    }
+
+    PCB* receiver = gProcessManager->GetRunningProcess();
+    Message* msg = gProcessManager->RemoveMessageBySenderID(receiver, 
+        sender->processID);
+
+    if( (INT32)SystemCallData->Argument[2] < msg->length )
+    {
+        *(long*)SystemCallData->Argument[5] =
+            ERR_DST_BUFFER_TOO_SMALL;
+
+        gProcessManager->AddMessage(receiver, msg);
+        LeaveCriticalSection(0);
+        return;
+    }
+
+    strcpy((char*)SystemCallData->Argument[1], msg->buffer);
+    *(long*)SystemCallData->Argument[3] = msg->length;
+    *(long*)SystemCallData->Argument[4] = msg->senderProcessID;
+    *(long*)SystemCallData->Argument[5] = ERR_SUCCESS;
+
     LeaveCriticalSection(0);
 }
 //****************************************************************************

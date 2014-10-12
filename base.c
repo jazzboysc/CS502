@@ -167,6 +167,14 @@ void    svc( SYSTEM_CALL_DATA *SystemCallData ) {
         SVCChangeProcessPriority(SystemCallData);
         break;
 
+    case SYSNUM_SEND_MESSAGE:
+        SVCSendMessage(SystemCallData);
+        break;
+
+    case SYSNUM_RECEIVE_MESSAGE:
+        SVCReceiveMessage(SystemCallData);
+        break;
+
     default:
         printf("ERROR!  call_type not recognized!\n");
         printf("Call_type is - %i\n", call_type);
@@ -211,6 +219,6 @@ void    osInit( int argc, char *argv[]  ) {
     ProcessManagerInitialize();
     SchedulerInitialize();
 
-    PCB* pcb = gProcessManager->CreateProcess("test1h", 1, test1h, 20, 0, 0);
+    PCB* pcb = gProcessManager->CreateProcess("test1i", 1, test1i, 20, 0, 0);
     gScheduler->Dispatch();
 }                                               // End of osInit

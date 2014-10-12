@@ -62,6 +62,9 @@
     <ClInclude Include="critical_section.h">
       <Filter>Modules</Filter>
     </ClInclude>
+    <ClInclude Include="message.h">
+      <Filter>Util</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="sample.c">

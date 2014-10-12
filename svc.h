@@ -10,5 +10,7 @@ void SVCStartTimer(SYSTEM_CALL_DATA* SystemCallData);
 void SVCSuspendProcess(SYSTEM_CALL_DATA* SystemCallData);
 void SVCResumeProcess(SYSTEM_CALL_DATA* SystemCallData);
 void SVCChangeProcessPriority(SYSTEM_CALL_DATA* SystemCallData);
+void SVCSendMessage(SYSTEM_CALL_DATA* SystemCallData);
+void SVCReceiveMessage(SYSTEM_CALL_DATA* SystemCallData);
 
 #endif

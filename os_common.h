@@ -15,13 +15,10 @@
 #include "priority_queue.h"
 #include "memory.h"
 
-// These loacations are global and define information about the page table
-extern UINT16*       Z502_PAGE_TBL_ADDR;
-extern INT16         Z502_PAGE_TBL_LENGTH;
-extern Z502CONTEXT*  Z502_CURRENT_CONTEXT;
-
 #define LEGAL_PRIORITY_MIN 1
 #define LEGAL_PRIORITY_MAX 100
+#define LEGAL_MESSAGE_LENGTH_MAX 256
+#define MAX_MESSAGE_LIST_NUM 16
 
 #define MAX_PROCESS_NUM 9
 #define ERR_CREAT_PROCESS_ILLEGAL_PRIORITY  22L
@@ -32,5 +29,8 @@ extern Z502CONTEXT*  Z502_CURRENT_CONTEXT;
 #define ERR_PROCESS_ALREADY_SUSPENDED       35L
 #define ERR_PROCESS_ALREADY_RESUMED         36L
 #define ERR_CHANGE_PROCESS_ILLEGAL_PRIORITY 40L
+#define ERR_ILEGAL_MESSAGE_LENGTH           45L
+#define ERR_DST_BUFFER_TOO_SMALL            46L
+#define ERR_REACH_MAX_MSG_COUNT             47L
 
 #endif
