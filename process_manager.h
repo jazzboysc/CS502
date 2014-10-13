@@ -29,6 +29,8 @@ typedef void (*ProcessManagerRemoveFromSuspendedListByID)(long processID);
 typedef void (*ProcessManagerAddMessage)(PCB* pcb, Message* msg);
 typedef Message* (*ProcessManagerRemoveMessageBySenderID)(PCB* pcb, long processID);
 typedef int (*ProcessManagerGetMessageListCount)(PCB* pcb);
+typedef void (*ProcessManagerBroadcastMessage)(long senderProcessID, Message* msg);
+typedef Message* (*ProcessManagerGetFirstMessage)(PCB* pcb);
 
 // Process manager is a global singleton object used to manage processes.
 typedef struct ProcessManager
@@ -63,6 +65,8 @@ typedef struct ProcessManager
     ProcessManagerAddMessage                   AddMessage;
     ProcessManagerRemoveMessageBySenderID      RemoveMessageBySenderID;
     ProcessManagerGetMessageListCount          GetMessageListCount;
+    ProcessManagerBroadcastMessage             BroadcastMessage;
+    ProcessManagerGetFirstMessage              GetFirstMessage;
 
 } ProcessManager;
 

@@ -375,6 +375,34 @@ int GetMessageListCount(PCB* pcb)
     return pcb->messages->count;
 }
 //****************************************************************************
+void BroadcastMessage(long senderProcessID, Message* msg)
+{
+    ListNode* currentProcessNode = gGlobalProcessList->head;
+    for( int i = 0; i < gGlobalProcessList->count; ++i )
+    {
+        PCB* receiver = (PCB*)currentProcessNode->data;
+        if( receiver->processID != senderProcessID &&
+            receiver->type == PROCESS_TYPE_USER &&
+            receiver->state != PROCESS_STATE_DEAD )
+        {
+            int messageCount = GetMessageListCount(receiver);
+            if( messageCount < MAX_MESSAGE_LIST_NUM )
+            {
+                Message* temp = ALLOC(Message);
+                memcpy(temp, msg, sizeof(Message));
+                AddMessage(receiver, temp);
+            }
+        }
+
+        currentProcessNode = currentProcessNode->next;
+    }
+}
+//****************************************************************************
+Message* GetFirstMessage(PCB* pcb)
+{
+    return (Message*)pcb->messages->head->data;
+}
+//****************************************************************************
 
 //****************************************************************************
 void ProcessManagerInitialize()
@@ -406,6 +434,8 @@ void ProcessManagerInitialize()
     gProcessManager->AddMessage = AddMessage;
     gProcessManager->RemoveMessageBySenderID = RemoveMessageBySenderID;
     gProcessManager->GetMessageListCount = GetMessageListCount;
+    gProcessManager->BroadcastMessage = BroadcastMessage;
+    gProcessManager->GetFirstMessage = GetFirstMessage;
 
     // Init OS global variables.
     gGlobalProcessList = ALLOC(List);
