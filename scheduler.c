@@ -48,7 +48,8 @@ void OnProcessTerminate()
     }
     else
     {
-        Z502SwitchContext(SWITCH_CONTEXT_SAVE_MODE, &gScheduler->schedulerPCB->context);
+        Z502SwitchContext(SWITCH_CONTEXT_SAVE_MODE, 
+            &gScheduler->schedulerPCB->context);
     }
 }
 //****************************************************************************
@@ -60,7 +61,21 @@ void OnProcessSleep()
     }
     else
     {
-        Z502SwitchContext(SWITCH_CONTEXT_SAVE_MODE, &gScheduler->schedulerPCB->context);
+        Z502SwitchContext(SWITCH_CONTEXT_SAVE_MODE, 
+            &gScheduler->schedulerPCB->context);
+    }
+}
+//****************************************************************************
+void OnProcessSuspend()
+{
+    if( gProcessManager->GetReadyQueueProcessCount() > 0 )
+    {
+        MakeReadyToRun();
+    }
+    else
+    {
+        Z502SwitchContext(SWITCH_CONTEXT_SAVE_MODE,
+            &gScheduler->schedulerPCB->context);
     }
 }
 //****************************************************************************
@@ -77,6 +92,7 @@ void SchedulerInitialize()
     gScheduler->OnRedispatch = OnRedispatch;
     gScheduler->OnProcessSleep = OnProcessSleep;
     gScheduler->OnProcessTerminate = OnProcessTerminate;
+    gScheduler->OnProcessSuspend = OnProcessSuspend;
     gScheduler->Dispatch = Dispatch;
 
     gScheduler->schedulerPCB = 

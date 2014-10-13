@@ -327,6 +327,16 @@ void AddMessage(PCB* pcb, Message* msg)
     ListNode* node = ALLOC(ListNode);
     node->data = (void*)msg;
     ListAttach(pcb->messages, node);
+
+    if( pcb->state == PROCESS_STATE_SUSPENDED )
+    {
+        RemoveFromSuspendedListByID(pcb->processID);
+        PushToReadyQueue(pcb);
+    }
+    else if( pcb->state == PROCESS_STATE_SUSPENDING )
+    {
+        pcb->state = PROCESS_STATE_SLEEPING;
+    }
 }
 //****************************************************************************
 Message* RemoveMessageBySenderID(PCB* pcb, long processID)
@@ -342,6 +352,9 @@ Message* RemoveMessageBySenderID(PCB* pcb, long processID)
     if( ((Message*)messages->head->data)->senderProcessID == processID )
     {
         res = (Message*)messages->head->data;
+        ListNode* temp = messages->head;
+        messages->head = messages->head->next;
+        DEALLOC(temp);
         messages->count--;
         return res;
     }
@@ -354,6 +367,7 @@ Message* RemoveMessageBySenderID(PCB* pcb, long processID)
         {
             prev->next = current->next;
             res = (Message*)current->data;
+            DEALLOC(current);
             messages->count--;
             break;
         }
@@ -363,6 +377,20 @@ Message* RemoveMessageBySenderID(PCB* pcb, long processID)
     }
 
     return res;
+}
+//****************************************************************************
+Message* GetMessageBySenderID(PCB* pcb, long processID)
+{
+    ListNode* currentMessageNode = pcb->messages->head;
+    while( currentMessageNode )
+    {
+        if( ((Message*)currentMessageNode->data)->senderProcessID == processID )
+        {
+            return (Message*)currentMessageNode->data;
+        }
+    }
+
+    return NULL;
 }
 //****************************************************************************
 int GetMessageListCount(PCB* pcb)
@@ -375,8 +403,10 @@ int GetMessageListCount(PCB* pcb)
     return pcb->messages->count;
 }
 //****************************************************************************
-void BroadcastMessage(long senderProcessID, Message* msg)
+int BroadcastMessage(long senderProcessID, Message* msg)
 {
+    int res = 0;
+
     ListNode* currentProcessNode = gGlobalProcessList->head;
     for( int i = 0; i < gGlobalProcessList->count; ++i )
     {
@@ -392,15 +422,26 @@ void BroadcastMessage(long senderProcessID, Message* msg)
                 memcpy(temp, msg, sizeof(Message));
                 AddMessage(receiver, temp);
             }
+            else
+            {
+                res = 1;
+            }
         }
 
         currentProcessNode = currentProcessNode->next;
     }
+
+    return res;
 }
 //****************************************************************************
 Message* GetFirstMessage(PCB* pcb)
 {
-    return (Message*)pcb->messages->head->data;
+    if( pcb->messages->count > 0 )
+    {
+        return (Message*)pcb->messages->head->data;
+    }
+
+    return NULL;
 }
 //****************************************************************************
 
@@ -433,6 +474,7 @@ void ProcessManagerInitialize()
     gProcessManager->RemoveFromSuspendedListByID = RemoveFromSuspendedListByID;
     gProcessManager->AddMessage = AddMessage;
     gProcessManager->RemoveMessageBySenderID = RemoveMessageBySenderID;
+    gProcessManager->GetMessageBySenderID = GetMessageBySenderID;
     gProcessManager->GetMessageListCount = GetMessageListCount;
     gProcessManager->BroadcastMessage = BroadcastMessage;
     gProcessManager->GetFirstMessage = GetFirstMessage;

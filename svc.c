@@ -228,44 +228,57 @@ void SVCSuspendProcess(SYSTEM_CALL_DATA* SystemCallData)
     EnterCriticalSection(0);
 
     long processID = (long)SystemCallData->Argument[0];
-    PCB* pcb = gProcessManager->GetPCBByID(processID);
-
-    if( !pcb || pcb->state == PROCESS_STATE_DEAD )
+    if( processID != -1 )
     {
-        // Process doesn't exist or already terminated.
-        *(long*)SystemCallData->Argument[1] =
-            ERR_PROCESS_ID_NOT_FOUND;
-        return;
-    }
+        PCB* pcb = gProcessManager->GetPCBByID(processID);
 
-    if( pcb->state == PROCESS_STATE_SUSPENDED )
-    {
-        // Process is alread suspended.
-        *(long*)SystemCallData->Argument[1] =
-            ERR_PROCESS_ALREADY_SUSPENDED;
+        if( !pcb || pcb->state == PROCESS_STATE_DEAD )
+        {
+            // Process doesn't exist or already terminated.
+            *(long*)SystemCallData->Argument[1] =
+                ERR_PROCESS_ID_NOT_FOUND;
+            return;
+        }
+
+        if( pcb->state == PROCESS_STATE_SUSPENDED )
+        {
+            // Process is alread suspended.
+            *(long*)SystemCallData->Argument[1] =
+                ERR_PROCESS_ALREADY_SUSPENDED;
+
+            LeaveCriticalSection(0);
+            return;
+        }
+
+        if( pcb->state == PROCESS_STATE_SLEEPING )
+        {
+            // Process is sleeping, delay suspension.
+            pcb->state = PROCESS_STATE_SUSPENDING;
+            *(long*)SystemCallData->Argument[1] = ERR_SUCCESS;
+
+            LeaveCriticalSection(0);
+            return;
+        }
+
+        if( pcb->state == PROCESS_STATE_READY )
+        {
+            gProcessManager->RemoveFromReadyQueueByID(pcb->processID);
+            gProcessManager->AddToSuspendedList(pcb);
+            *(long*)SystemCallData->Argument[1] = ERR_SUCCESS;
+        }
 
         LeaveCriticalSection(0);
-        return;
     }
-
-    if( pcb->state == PROCESS_STATE_SLEEPING )
+    else
     {
-        // Process is sleeping, delay suspension.
-        pcb->state = PROCESS_STATE_SUSPENDING;
-        *(long*)SystemCallData->Argument[1] = ERR_SUCCESS;
-
-        LeaveCriticalSection(0);
-        return;
-    }
-
-    if( pcb->state == PROCESS_STATE_READY )
-    {
-        gProcessManager->RemoveFromReadyQueueByID(pcb->processID);
+        // Suspend myself.
+        PCB* pcb = gProcessManager->GetRunningProcess();
         gProcessManager->AddToSuspendedList(pcb);
         *(long*)SystemCallData->Argument[1] = ERR_SUCCESS;
-    }
 
-    LeaveCriticalSection(0);
+        LeaveCriticalSection(0);
+        gScheduler->OnProcessSuspend();
+    }
 }
 //****************************************************************************
 void SVCResumeProcess(SYSTEM_CALL_DATA* SystemCallData)
@@ -344,6 +357,7 @@ void SVCChangeProcessPriority(SYSTEM_CALL_DATA* SystemCallData)
     }
 
     pcb->priority = (INT32)SystemCallData->Argument[1];
+    pcb->currentPriority = pcb->priority;
     pcb->readyQueueKey = pcb->priority;
     if( pcb->state == PROCESS_STATE_READY )
     {
@@ -359,11 +373,12 @@ void SVCChangeProcessPriority(SYSTEM_CALL_DATA* SystemCallData)
     LeaveCriticalSection(0);
 }
 //****************************************************************************
-Message* CreateMessage(char* msg)
+Message* CreateMessage(char* msg, int length)
 {
     Message* m = ALLOC(Message);
     m->senderProcessID = gProcessManager->GetRunningProcess()->processID;
-    m->length = strlen(msg);
+    //m->length = strlen(msg);
+    m->length = length;
     strcpy(m->buffer, msg);
     return m;
 }
@@ -389,11 +404,20 @@ void SVCSendMessage(SYSTEM_CALL_DATA* SystemCallData)
 
         // Create a message to be sent to receiver.
         char* msg = (char*)SystemCallData->Argument[1];
-        Message* m = CreateMessage(msg);
+        Message* m = CreateMessage(msg, (INT32)SystemCallData->Argument[2]);
 
-        gProcessManager->BroadcastMessage(
+        int res = gProcessManager->BroadcastMessage(
             gProcessManager->GetRunningProcess()->processID, m);
         DEALLOC(m);
+
+        if( res != 0 )
+        {
+            *(long*)SystemCallData->Argument[3] =
+                ERR_REACH_MAX_MSG_COUNT;
+
+            LeaveCriticalSection(0);
+            return;
+        }
     }
     else
     {
@@ -424,7 +448,7 @@ void SVCSendMessage(SYSTEM_CALL_DATA* SystemCallData)
 
         // Create a message to be sent to receiver.
         char* msg = (char*)SystemCallData->Argument[1];
-        Message* m = CreateMessage(msg);
+        Message* m = CreateMessage(msg, (INT32)SystemCallData->Argument[2]);
 
         // Send message to receiver.
         gProcessManager->AddMessage(receiver, m);
@@ -450,28 +474,71 @@ void SVCReceiveMessage(SYSTEM_CALL_DATA* SystemCallData)
     long processID = (long)SystemCallData->Argument[0];
     if( processID == -1 )
     {
-        // Receive the first message.
+        // Receive the first message sent to me.
         PCB* receiver = gProcessManager->GetRunningProcess();
-        Message* msg = gProcessManager->GetFirstMessage(receiver);
 
-        if( (INT32)SystemCallData->Argument[2] < msg->length )
+        if( gProcessManager->GetMessageListCount(receiver) > 0 )
         {
-            *(long*)SystemCallData->Argument[5] =
-                ERR_DST_BUFFER_TOO_SMALL;
+            // Grab the first meesage on message list.
+            Message* msg = gProcessManager->GetFirstMessage(receiver);
+            assert(msg);
 
-            LeaveCriticalSection(0);
-            return;
+            if( (INT32)SystemCallData->Argument[2] < msg->length )
+            {
+                // Destination buffer is too small.
+                *(long*)SystemCallData->Argument[5] =
+                    ERR_DST_BUFFER_TOO_SMALL;
+
+                LeaveCriticalSection(0);
+                return;
+            }
+
+            // Give the message to the caller and destroy the message.
+            strcpy((char*)SystemCallData->Argument[1], msg->buffer);
+            *(long*)SystemCallData->Argument[3] = msg->length;
+            *(long*)SystemCallData->Argument[4] = msg->senderProcessID;
+            msg = gProcessManager->RemoveMessageBySenderID(receiver,
+                msg->senderProcessID);
+            DEALLOC(msg);
         }
+        else
+        {
+            // No message available. Suspend myself.
+            PCB* pcb = gProcessManager->GetRunningProcess();
+            gProcessManager->AddToSuspendedList(pcb);
+            LeaveCriticalSection(0);
+            gScheduler->OnProcessSuspend();
 
-        strcpy((char*)SystemCallData->Argument[1], msg->buffer);
-        *(long*)SystemCallData->Argument[3] = msg->length;
-        *(long*)SystemCallData->Argument[4] = msg->senderProcessID;
+            // Resumed from suspension. Get message now.
+            // Grab the first meesage on message list.
+            Message* msg = gProcessManager->GetFirstMessage(receiver);
+            assert(msg);
+
+            if( (INT32)SystemCallData->Argument[2] < msg->length )
+            {
+                // Destination buffer is too small.
+                *(long*)SystemCallData->Argument[5] =
+                    ERR_DST_BUFFER_TOO_SMALL;
+
+                LeaveCriticalSection(0);
+                return;
+            }
+
+            // Give the message to the caller and destroy the message.
+            strcpy((char*)SystemCallData->Argument[1], msg->buffer);
+            *(long*)SystemCallData->Argument[3] = msg->length;
+            *(long*)SystemCallData->Argument[4] = msg->senderProcessID;
+            msg = gProcessManager->RemoveMessageBySenderID(receiver,
+                msg->senderProcessID);
+            DEALLOC(msg);
+        }
     }
     else
     {
         PCB* sender = NULL;
         sender = gProcessManager->GetPCBByID(processID);
 
+        // Check if the sender exists.
         if( !sender )
         {
             *(long*)SystemCallData->Argument[5] =
@@ -482,22 +549,31 @@ void SVCReceiveMessage(SYSTEM_CALL_DATA* SystemCallData)
         }
 
         PCB* receiver = gProcessManager->GetRunningProcess();
-        Message* msg = gProcessManager->RemoveMessageBySenderID(receiver,
+        Message* msg = gProcessManager->GetMessageBySenderID(receiver,
             sender->processID);
-
-        if( (INT32)SystemCallData->Argument[2] < msg->length )
+        if( msg )
         {
-            *(long*)SystemCallData->Argument[5] =
-                ERR_DST_BUFFER_TOO_SMALL;
+            if( (INT32)SystemCallData->Argument[2] < msg->length )
+            {
+                // Destination buffer is too small.
+                *(long*)SystemCallData->Argument[5] =
+                    ERR_DST_BUFFER_TOO_SMALL;
 
-            gProcessManager->AddMessage(receiver, msg);
-            LeaveCriticalSection(0);
-            return;
+                LeaveCriticalSection(0);
+                return;
+            }
+
+            strcpy((char*)SystemCallData->Argument[1], msg->buffer);
+            *(long*)SystemCallData->Argument[3] = msg->length;
+            *(long*)SystemCallData->Argument[4] = msg->senderProcessID;
+            msg = gProcessManager->RemoveMessageBySenderID(receiver,
+                sender->processID);
+            DEALLOC(msg);
         }
-
-        strcpy((char*)SystemCallData->Argument[1], msg->buffer);
-        *(long*)SystemCallData->Argument[3] = msg->length;
-        *(long*)SystemCallData->Argument[4] = msg->senderProcessID;
+        else
+        {
+            // No message available. Suspend myself.
+        }
     }
 
     *(long*)SystemCallData->Argument[5] = ERR_SUCCESS;
