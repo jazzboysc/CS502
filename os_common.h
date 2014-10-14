@@ -33,4 +33,6 @@
 #define ERR_DST_BUFFER_TOO_SMALL            46L
 #define ERR_REACH_MAX_MSG_COUNT             47L
 
+#define PRINT_STATE
+
 #endif

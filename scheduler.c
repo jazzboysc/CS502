@@ -17,6 +17,9 @@ void MakeReadyToRun()
         }
 
         gProcessManager->SetRunningProcess(pcb);
+#ifdef PRINT_STATE
+        gProcessManager->PrintState();
+#endif
         Z502SwitchContext(SWITCH_CONTEXT_SAVE_MODE, &pcb->context);
     }
 }

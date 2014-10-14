@@ -24,5 +24,6 @@ HeapItem* MinPriQueueGetMin(MinPriQueue* queue);
 void MinPriQueuePop(MinPriQueue* queue, HeapItem* dst);
 void MinPriQueuePush(MinPriQueue* queue, int key, void* data);
 void MinPriQueueRemove(MinPriQueue* queue, int i, HeapItem* dst);
+void MinPriQueueClone(MinPriQueue* src, MinPriQueue* dst);
 
 #endif

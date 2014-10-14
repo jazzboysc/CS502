@@ -147,3 +147,12 @@ void HeapRemove(Heap* heap, int i, HeapItem* dst)
     }
 }
 //****************************************************************************
+void HeapClone(Heap* src, Heap* dst)
+{
+    assert( src && dst );
+
+    memcpy(dst, src, sizeof(Heap));
+    dst->buffer = malloc(sizeof(HeapItem)*(dst->capacity + 1));
+    memcpy(dst->buffer, src->buffer, sizeof(HeapItem)*(dst->capacity + 1));
+}
+//****************************************************************************

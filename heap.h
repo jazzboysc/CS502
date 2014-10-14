@@ -59,5 +59,6 @@ void HeapUpdateKey(Heap* heap, int i, int newKey);
 void HeapPush(Heap* heap, int key, void* data);
 void HeapPop(Heap* heap, HeapItem* dst);
 void HeapRemove(Heap* heap, int i, HeapItem* dst);
+void HeapClone(Heap* src, Heap* dst);
 
 #endif

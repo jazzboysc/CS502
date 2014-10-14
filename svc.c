@@ -178,6 +178,10 @@ void SVCCreateProcess(SYSTEM_CALL_DATA* SystemCallData)
                                    (int)SystemCallData->Argument[2],
                                    (long*)SystemCallData->Argument[3],
                                    (long*)SystemCallData->Argument[4]);
+
+#ifdef PRINT_STATE
+    gProcessManager->PrintState();
+#endif
     LeaveCriticalSection(0);
 }
 //****************************************************************************

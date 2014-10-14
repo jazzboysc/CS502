@@ -121,3 +121,9 @@ void MinPriQueueRemove(MinPriQueue* queue, int i, HeapItem* dst)
     HeapRemove(&queue->heap, i, dst);
 }
 //****************************************************************************
+void MinPriQueueClone(MinPriQueue* src, MinPriQueue* dst)
+{
+    assert( src && dst );
+    HeapClone(&src->heap, &dst->heap);
+}
+//****************************************************************************

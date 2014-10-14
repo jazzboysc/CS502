@@ -444,6 +444,41 @@ Message* GetFirstMessage(PCB* pcb)
     return NULL;
 }
 //****************************************************************************
+void PrintState()
+{
+    INT32 currentTime;
+    MEM_READ(Z502ClockStatus, &currentTime);
+    SP_setup(SP_TIME_MODE, currentTime);
+    SP_setup(SP_RUNNING_MODE, GetRunningProcess()->processID);
+
+    MinPriQueue tempQueue;
+    HeapItem tempItem;
+    MinPriQueueClone(gReadyQueue, &tempQueue);
+    int readyCount = tempQueue.heap.size;
+    for( int i = 0; i < readyCount; ++i )
+    {
+        MinPriQueuePop(&tempQueue, &tempItem);
+        SP_setup(SP_READY_MODE, ((PCB*)tempItem.data)->processID);
+    }
+
+    MinPriQueueClone(gTimerQueue, &tempQueue);
+    int sleepCount = tempQueue.heap.size;
+    for( int i = 0; i < sleepCount; ++i )
+    {
+        MinPriQueuePop(&tempQueue, &tempItem);
+        SP_setup(SP_TIMER_SUSPENDED_MODE, ((PCB*)tempItem.data)->processID);
+    }
+
+    ListNode* current = gSuspendedList->head;
+    while( current )
+    {
+        SP_setup(SP_PROCESS_SUSPENDED_MODE, ((PCB*)current->data)->processID);
+        current = current->next;
+    }
+
+    SP_print_line();
+}
+//****************************************************************************
 
 //****************************************************************************
 void ProcessManagerInitialize()
@@ -478,6 +513,7 @@ void ProcessManagerInitialize()
     gProcessManager->GetMessageListCount = GetMessageListCount;
     gProcessManager->BroadcastMessage = BroadcastMessage;
     gProcessManager->GetFirstMessage = GetFirstMessage;
+    gProcessManager->PrintState = PrintState;
 
     // Init OS global variables.
     gGlobalProcessList = ALLOC(List);
