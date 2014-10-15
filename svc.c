@@ -54,14 +54,14 @@ void SVCTerminateProcess(SYSTEM_CALL_DATA* SystemCallData)
 
     EnterCriticalSection(0);
 
-    if( (INT32)SystemCallData->Argument[0] == -2 )
+    if( (long)SystemCallData->Argument[0] == -2 )
     {
         LeaveCriticalSection(0);
 
         // Terminate all.
         Z502Halt();
     }
-    else if( (INT32)SystemCallData->Argument[0] == -1 )
+    else if( (long)SystemCallData->Argument[0] == -1 )
     {
         // Terminate myself.
         terminateMyself = 1;
@@ -131,8 +131,8 @@ void SVCCreateProcess(SYSTEM_CALL_DATA* SystemCallData)
         return;
     }
 
-    if( (INT32)SystemCallData->Argument[2] < LEGAL_PRIORITY_MIN ||
-        (INT32)SystemCallData->Argument[2] > LEGAL_PRIORITY_MAX )
+    if( (long)SystemCallData->Argument[2] < LEGAL_PRIORITY_MIN ||
+        (long)SystemCallData->Argument[2] > LEGAL_PRIORITY_MAX )
     {
         if( dstErr )
         {
@@ -175,7 +175,7 @@ void SVCCreateProcess(SYSTEM_CALL_DATA* SystemCallData)
     gProcessManager->CreateProcess((char*)SystemCallData->Argument[0],
                                    1,
                                    (ProcessEntry)SystemCallData->Argument[1],
-                                   (int)SystemCallData->Argument[2],
+                                   *((int*)&SystemCallData->Argument[2]),
                                    (long*)SystemCallData->Argument[3],
                                    (long*)SystemCallData->Argument[4]);
 
@@ -197,7 +197,7 @@ void SVCStartTimer(SYSTEM_CALL_DATA* SystemCallData)
     PCB* pcb = gProcessManager->GetRunningProcess();
 
     CALL(MEM_READ(Z502ClockStatus, &currentTime));
-    sleepTime = (INT32)SystemCallData->Argument[0];
+    sleepTime = *((INT32*)&SystemCallData->Argument[0]);
     pcb->timerQueueKey = currentTime + sleepTime;
 
     // Check timer queue to see if there is a process to be awakened earlier.
@@ -330,8 +330,8 @@ void SVCChangeProcessPriority(SYSTEM_CALL_DATA* SystemCallData)
 {
     EnterCriticalSection(0);
 
-    if( (INT32)SystemCallData->Argument[1] < LEGAL_PRIORITY_MIN ||
-        (INT32)SystemCallData->Argument[1] > LEGAL_PRIORITY_MAX )
+    if( (long)SystemCallData->Argument[1] < LEGAL_PRIORITY_MIN ||
+        (long)SystemCallData->Argument[1] > LEGAL_PRIORITY_MAX )
     {
         *(long*)SystemCallData->Argument[2] =
             ERR_CHANGE_PROCESS_ILLEGAL_PRIORITY;
@@ -360,7 +360,7 @@ void SVCChangeProcessPriority(SYSTEM_CALL_DATA* SystemCallData)
         return;
     }
 
-    pcb->priority = (INT32)SystemCallData->Argument[1];
+    pcb->priority = *(int*)&SystemCallData->Argument[1];
     pcb->currentPriority = pcb->priority;
     pcb->readyQueueKey = pcb->priority;
     if( pcb->state == PROCESS_STATE_READY )
@@ -379,7 +379,7 @@ void SVCChangeProcessPriority(SYSTEM_CALL_DATA* SystemCallData)
 //****************************************************************************
 Message* CreateMessage(char* msg, int length)
 {
-    Message* m = ALLOC(Message);
+    Message* m = (Message*)ALLOC(Message);
     m->senderProcessID = gProcessManager->GetRunningProcess()->processID;
     //m->length = strlen(msg);
     m->length = length;
@@ -393,7 +393,7 @@ void SVCSendMessage(SYSTEM_CALL_DATA* SystemCallData)
 
     long processID = (long)SystemCallData->Argument[0];
 
-    if( (INT32)SystemCallData->Argument[2] > LEGAL_MESSAGE_LENGTH_MAX )
+    if( (long)SystemCallData->Argument[2] > LEGAL_MESSAGE_LENGTH_MAX )
     {
         *(long*)SystemCallData->Argument[3] =
             ERR_ILEGAL_MESSAGE_LENGTH;
@@ -408,7 +408,7 @@ void SVCSendMessage(SYSTEM_CALL_DATA* SystemCallData)
 
         // Create a message to be sent to receiver.
         char* msg = (char*)SystemCallData->Argument[1];
-        Message* m = CreateMessage(msg, (INT32)SystemCallData->Argument[2]);
+        Message* m = CreateMessage(msg, *(int*)&SystemCallData->Argument[2]);
 
         int res = gProcessManager->BroadcastMessage(
             gProcessManager->GetRunningProcess()->processID, m);
@@ -452,7 +452,7 @@ void SVCSendMessage(SYSTEM_CALL_DATA* SystemCallData)
 
         // Create a message to be sent to receiver.
         char* msg = (char*)SystemCallData->Argument[1];
-        Message* m = CreateMessage(msg, (INT32)SystemCallData->Argument[2]);
+        Message* m = CreateMessage(msg, *(int*)&SystemCallData->Argument[2]);
 
         // Send message to receiver.
         gProcessManager->AddMessage(receiver, m);
@@ -466,7 +466,7 @@ void SVCReceiveMessage(SYSTEM_CALL_DATA* SystemCallData)
 {
     EnterCriticalSection(0);
 
-    if( (INT32)SystemCallData->Argument[2] > LEGAL_MESSAGE_LENGTH_MAX )
+    if( (long)SystemCallData->Argument[2] > LEGAL_MESSAGE_LENGTH_MAX )
     {
         *(long*)SystemCallData->Argument[5] =
             ERR_ILEGAL_MESSAGE_LENGTH;
@@ -487,7 +487,7 @@ void SVCReceiveMessage(SYSTEM_CALL_DATA* SystemCallData)
             Message* msg = gProcessManager->GetFirstMessage(receiver);
             assert(msg);
 
-            if( (INT32)SystemCallData->Argument[2] < msg->length )
+            if( (long)SystemCallData->Argument[2] < msg->length )
             {
                 // Destination buffer is too small.
                 *(long*)SystemCallData->Argument[5] =
@@ -518,7 +518,7 @@ void SVCReceiveMessage(SYSTEM_CALL_DATA* SystemCallData)
             Message* msg = gProcessManager->GetFirstMessage(receiver);
             assert(msg);
 
-            if( (INT32)SystemCallData->Argument[2] < msg->length )
+            if( (long)SystemCallData->Argument[2] < msg->length )
             {
                 // Destination buffer is too small.
                 *(long*)SystemCallData->Argument[5] =
@@ -557,7 +557,7 @@ void SVCReceiveMessage(SYSTEM_CALL_DATA* SystemCallData)
             sender->processID);
         if( msg )
         {
-            if( (INT32)SystemCallData->Argument[2] < msg->length )
+            if( (long)SystemCallData->Argument[2] < msg->length )
             {
                 // Destination buffer is too small.
                 *(long*)SystemCallData->Argument[5] =

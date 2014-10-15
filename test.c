@@ -51,8 +51,6 @@
 #include         "stdlib.h"
 #include         "math.h"
 
-#include         "priority_queue.h"
-
 INT16 Z502_PROGRAM_COUNTER;
 
 extern long Z502_REG1;
@@ -76,49 +74,6 @@ void   SuccessExpected(INT32, char[]);
 void   GetRandomNumber( long *, long );
 void   GetSkewedRandomNumber( long *, long );
 void   Test2f_Statistics(int Pid);
-
-void test_queue() {
-    MaxPriQueue* queue = malloc(sizeof(MaxPriQueue));
-    MaxPriQueueInit(queue, 8);
-
-    MaxPriQueuePush(queue, 10, 0);
-    MaxPriQueuePush(queue, 15, 0);
-    MaxPriQueuePush(queue, 1, 0);
-    MaxPriQueuePush(queue, 10, 0);
-    MaxPriQueuePush(queue, 8, 0);
-    MaxPriQueuePush(queue, 10, 0);
-
-    HeapItem item;
-    MaxPriQueueRemove(queue, 2, &item);
-    MaxPriQueuePop(queue, &item);
-    MaxPriQueuePop(queue, &item);
-    MaxPriQueuePop(queue, &item);
-    MaxPriQueuePop(queue, &item);
-    MaxPriQueuePop(queue, &item);
-
-    free(queue);
-    queue = 0;
-
-    MinPriQueue* queue2 = malloc(sizeof(MinPriQueue));
-    MinPriQueueInit(queue2, 8);
-
-    MinPriQueuePush(queue2, 10, 0);
-    MinPriQueuePush(queue2, 15, 0);
-    MinPriQueuePush(queue2, 1, 0);
-    MinPriQueuePush(queue2, 10, 0);
-    MinPriQueuePush(queue2, 8, 0);
-    MinPriQueuePush(queue2, 10, 0);
-
-    MinPriQueueRemove(queue2, 2, &item);
-    MinPriQueuePop(queue2, &item);
-    MinPriQueuePop(queue2, &item);
-    MinPriQueuePop(queue2, &item);
-    MinPriQueuePop(queue2, &item);
-    MinPriQueuePop(queue2, &item);
-
-    free(queue2);
-    queue2 = 0;
-}
 
 /**************************************************************************
 
@@ -155,41 +110,12 @@ void test0(void) {
 
  **************************************************************************/
 
-void test1a_a(void) {
-
-    GET_PROCESS_ID("", &Z502_REG2, &Z502_REG9);
-    printf("Release %s:Test 1a_a: Pid %ld\n", CURRENT_REL, Z502_REG2);
-
-    //INT32 Status;
-    //while( 1 )
-    //{
-    //    MEM_READ(Z502TimerStatus, &Status);
-    //    if( Status == DEVICE_FREE )
-    //    {
-    //        printf("SVCStartTimer: Timer is free\n");
-    //    }
-    //    else
-    //    {
-    //        printf("SVCStartTimer: Timer is busy\n");
-    //    }
-
-    //    printf("hello\n");
-    //}
-    SLEEP(100);
-
-    TERMINATE_PROCESS(-1, &Z502_REG9);
-    printf("ERROR: PID %ld Test1x should be terminated but isn't.\n", (int)Z502_REG2);
-
-} /* End of test1x    */
-
 void test1a(void) {
-    static INT32   SleepTime = 100;
+    static long    SleepTime = 100;
     static INT32   time1, time2;
 
     printf("This is Release %s:  Test 1a\n", CURRENT_REL);
     GET_TIME_OF_DAY(&time1);
-
-    //CREATE_PROCESS("test1a_a", test1a_a, 10, &Z502_REG1, &Z502_REG9);
 
     SLEEP(SleepTime);
 
@@ -283,7 +209,8 @@ void test1b(void) {
 
     GET_TIME_OF_DAY(&Z502_REG4);
     printf("Test1b, PID %ld, Ends at Time %ld\n", Z502_REG2, Z502_REG4);
-    TERMINATE_PROCESS(-2, &Z502_REG9);
+    TERMINATE_PROCESS(-2, &Z502_REG9)
+
 }                                                  // End of test1b
 
 /**************************************************************************
@@ -1221,7 +1148,7 @@ void test1x(void) {
     printf("Test1x, PID %ld, Ends at Time %ld\n", Z502_REG2, Z502_REG4);
 
     TERMINATE_PROCESS(-1, &Z502_REG9);
-    printf("ERROR: PID %ld Test1x should be terminated but isn't.\n", (int)Z502_REG2);
+    printf("ERROR: Test1x should be terminated but isn't.\n");
 
 } /* End of test1x    */
 
@@ -1718,7 +1645,7 @@ void test2f(void) {
                 printf("AN ERROR HAS OCCURRED: READ NOT EQUAL WRITE.\n");
 
             // Record in our data-base that we've accessed this page
-            mtr->page_touched[(short) Loops] = *(INT16*)&Z502_REG7;
+            mtr->page_touched[(short) Loops] = Z502_REG7;
             Test2f_Statistics( Z502_REG4 );
 
         }   // End of for Loops

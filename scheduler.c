@@ -91,7 +91,7 @@ void Dispatch()
 //****************************************************************************
 void SchedulerInitialize()
 {
-    gScheduler = ALLOC(Scheduler);
+    gScheduler = (Scheduler*)ALLOC(Scheduler);
     gScheduler->OnRedispatch = OnRedispatch;
     gScheduler->OnProcessSleep = OnProcessSleep;
     gScheduler->OnProcessTerminate = OnProcessTerminate;

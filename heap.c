@@ -6,7 +6,7 @@ void HeapInit(Heap* heap, int capacity, HeapCompareKey compare, int isMaxHeap)
 {
     assert( heap && compare && capacity > 0 );
 
-    heap->buffer = malloc(sizeof(HeapItem)*(capacity + 1));
+    heap->buffer = (HeapItem*)malloc(sizeof(HeapItem)*(capacity + 1));
     memset(heap->buffer, 0x00, sizeof(HeapItem)*(capacity + 1));
     heap->size = 0;
     heap->capacity = capacity;
@@ -152,7 +152,7 @@ void HeapClone(Heap* src, Heap* dst)
     assert( src && dst );
 
     memcpy(dst, src, sizeof(Heap));
-    dst->buffer = malloc(sizeof(HeapItem)*(dst->capacity + 1));
+    dst->buffer = (HeapItem*)malloc(sizeof(HeapItem)*(dst->capacity + 1));
     memcpy(dst->buffer, src->buffer, sizeof(HeapItem)*(dst->capacity + 1));
 }
 //****************************************************************************

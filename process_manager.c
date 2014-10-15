@@ -125,7 +125,8 @@ void RemovePCBFromGlobalListByID(long processID)
 //****************************************************************************
 void RemoveFromTimerQueueByID(long processID)
 {
-    for( int i = 1; i <= gTimerQueue->heap.size; ++i )
+    int i;
+    for( i = 1; i <= gTimerQueue->heap.size; ++i )
     {
         HeapItem* item = &(gTimerQueue->heap.buffer[i]);
         if( ((PCB*)item->data)->processID == processID )
@@ -139,7 +140,8 @@ void RemoveFromTimerQueueByID(long processID)
 //****************************************************************************
 void RemoveFromReadyQueueByID(long processID)
 {
-    for( int i = 1; i <= gReadyQueue->heap.size; ++i )
+    int i;
+    for( i = 1; i <= gReadyQueue->heap.size; ++i )
     {
         HeapItem* item = &(gReadyQueue->heap.buffer[i]);
         if( ((PCB*)item->data)->processID == processID )
@@ -184,18 +186,18 @@ PCB* CreateProcess(char* name, int type, ProcessEntry entry, int priority,
     static long gCurrentProcessID = 0;
 
     // Create a PCB for the new process.
-    PCB* pcb = ALLOC(PCB);
+    PCB* pcb = (PCB*)ALLOC(PCB);
     pcb->type = type;
     pcb->entry = entry;
     pcb->priority = priority;
     pcb->currentPriority = priority;
     pcb->readyQueueKey = priority;
     size_t len = strlen(name);
-    pcb->name = malloc(len + 1);
+    pcb->name = (char*)malloc(len + 1);
     strcpy(pcb->name, name);
     pcb->name[len] = 0;
     pcb->processID = ++gCurrentProcessID;
-    pcb->messages = ALLOC(List);
+    pcb->messages = (List*)ALLOC(List);
 
     // Return process id to the caller.
     if( dstID )
@@ -211,7 +213,7 @@ PCB* CreateProcess(char* name, int type, ProcessEntry entry, int priority,
     if( type == PROCESS_TYPE_USER )
     {
         // Add to global process list.
-        ListNode* pcbNode = ALLOC(ListNode);
+        ListNode* pcbNode = (ListNode*)ALLOC(ListNode);
         pcbNode->data = (void*)pcb;
         ListAttach(gGlobalProcessList, pcbNode);
 
@@ -227,8 +229,9 @@ PCB* CreateProcess(char* name, int type, ProcessEntry entry, int priority,
 //****************************************************************************
 void TerminateAllProcess()
 {
+    int i;
     ListNode* currentProcessNode = gGlobalProcessList->head;
-    for( int i = 0; i < gGlobalProcessList->count; ++i )
+    for( i = 0; i < gGlobalProcessList->count; ++i )
     {
         PCB* pcb = (PCB*)currentProcessNode->data;
 
@@ -264,9 +267,10 @@ PCB* GetRunningProcess()
 int IsAllDead()
 {
     int isAllDead = 1;
+    int i;
 
     ListNode* currentProcessNode = gGlobalProcessList->head;
-    for( int i = 0; i < gGlobalProcessList->count; ++i )
+    for( i = 0; i < gGlobalProcessList->count; ++i )
     {
         PCB* pcb = (PCB*)currentProcessNode->data;
         if( pcb->type == PROCESS_TYPE_USER && 
@@ -285,7 +289,7 @@ int IsAllDead()
 //****************************************************************************
 void AddToSuspendedList(PCB* pcb)
 {
-    ListNode* pcbNode = ALLOC(ListNode);
+    ListNode* pcbNode = (ListNode*)ALLOC(ListNode);
     pcbNode->data = (void*)pcb;
     ListAttach(gSuspendedList, pcbNode);
     pcb->state = PROCESS_STATE_SUSPENDED;
@@ -324,7 +328,7 @@ void RemoveFromSuspendedListByID(long processID)
 //****************************************************************************
 void AddMessage(PCB* pcb, Message* msg)
 {
-    ListNode* node = ALLOC(ListNode);
+    ListNode* node = (ListNode*)ALLOC(ListNode);
     node->data = (void*)msg;
     ListAttach(pcb->messages, node);
 
@@ -406,9 +410,10 @@ int GetMessageListCount(PCB* pcb)
 int BroadcastMessage(long senderProcessID, Message* msg)
 {
     int res = 0;
+    int i;
 
     ListNode* currentProcessNode = gGlobalProcessList->head;
-    for( int i = 0; i < gGlobalProcessList->count; ++i )
+    for( i = 0; i < gGlobalProcessList->count; ++i )
     {
         PCB* receiver = (PCB*)currentProcessNode->data;
         if( receiver->processID != senderProcessID &&
@@ -418,7 +423,7 @@ int BroadcastMessage(long senderProcessID, Message* msg)
             int messageCount = GetMessageListCount(receiver);
             if( messageCount < MAX_MESSAGE_LIST_NUM )
             {
-                Message* temp = ALLOC(Message);
+                Message* temp = (Message*)ALLOC(Message);
                 memcpy(temp, msg, sizeof(Message));
                 AddMessage(receiver, temp);
             }
@@ -447,6 +452,9 @@ Message* GetFirstMessage(PCB* pcb)
 void PrintState()
 {
     INT32 currentTime;
+    int i;
+    int sleepCount;
+
     MEM_READ(Z502ClockStatus, &currentTime);
     SP_setup(SP_TIME_MODE, currentTime);
     SP_setup(SP_RUNNING_MODE, GetRunningProcess()->processID);
@@ -455,15 +463,15 @@ void PrintState()
     HeapItem tempItem;
     MinPriQueueClone(gReadyQueue, &tempQueue);
     int readyCount = tempQueue.heap.size;
-    for( int i = 0; i < readyCount; ++i )
+    for( i = 0; i < readyCount; ++i )
     {
         MinPriQueuePop(&tempQueue, &tempItem);
         SP_setup(SP_READY_MODE, ((PCB*)tempItem.data)->processID);
     }
 
     MinPriQueueClone(gTimerQueue, &tempQueue);
-    int sleepCount = tempQueue.heap.size;
-    for( int i = 0; i < sleepCount; ++i )
+    sleepCount = tempQueue.heap.size;
+    for( i = 0; i < sleepCount; ++i )
     {
         MinPriQueuePop(&tempQueue, &tempItem);
         SP_setup(SP_TIMER_SUSPENDED_MODE, ((PCB*)tempItem.data)->processID);
@@ -484,7 +492,7 @@ void PrintState()
 void ProcessManagerInitialize()
 {
     // Create process manager.
-    gProcessManager = ALLOC(ProcessManager);
+    gProcessManager = (ProcessManager*)ALLOC(ProcessManager);
     gProcessManager->CreateProcess = CreateProcess;
     gProcessManager->GetPCBByContext = GetPCBByContext;
     gProcessManager->GetPCBByID = GetPCBByID;
@@ -516,12 +524,12 @@ void ProcessManagerInitialize()
     gProcessManager->PrintState = PrintState;
 
     // Init OS global variables.
-    gGlobalProcessList = ALLOC(List);
-    gTimerQueue = ALLOC(MinPriQueue);
+    gGlobalProcessList = (List*)ALLOC(List);
+    gTimerQueue = (MinPriQueue*)ALLOC(MinPriQueue);
     MinPriQueueInit(gTimerQueue, MAX_PROCESS_NUM);
-    gReadyQueue = ALLOC(MinPriQueue);
+    gReadyQueue = (MinPriQueue*)ALLOC(MinPriQueue);
     MinPriQueueInit(gReadyQueue, MAX_PROCESS_NUM);
-    gSuspendedList = ALLOC(List);
+    gSuspendedList = (List*)ALLOC(List);
     gRunningProcess = NULL;
 }
 //****************************************************************************
