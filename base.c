@@ -182,7 +182,16 @@ void    svc( SYSTEM_CALL_DATA *SystemCallData ) {
     }
 }                                               // End of svc
 
-
+ProcessEntry tests[10] = { test1a, 
+                           test1b,
+                           test1c, 
+                           test1d, 
+                           test1e, 
+                           test1f, 
+                           test1g, 
+                           test1h, 
+                           test1i, 
+                           test1j };
 
 /************************************************************************
     osInit
@@ -194,6 +203,12 @@ void    svc( SYSTEM_CALL_DATA *SystemCallData ) {
 void    osInit( int argc, char *argv[]  ) {
     void                *next_context;
     INT32               i;
+
+    if( argc == 1 )
+    {
+        printf("Please enter a test you want to run (such as test1c).\n");
+        return;
+    }
 
     /* Demonstrates how calling arguments are passed thru to here       */
 
@@ -216,9 +231,30 @@ void    osInit( int argc, char *argv[]  ) {
         Z502SwitchContext( SWITCH_CONTEXT_KILL_MODE, &next_context );
     }                   /* This routine should never return!!           */
 
+    int entry = 0;
+    char* entryName = "";
+    if( argc > 1 )
+    {
+        if( argv[1][0] == 't' &&
+            argv[1][1] == 'e' &&
+            argv[1][2] == 's' &&
+            argv[1][3] == 't' )
+        {
+            if( argv[1][4] == '1' )
+            {
+                entry = argv[1][5] - 'a';
+                entryName = &argv[1][0];
+                if( entry > 9 )
+                {
+                    entry = 9;
+                }
+            }
+        }
+    }
+
     ProcessManagerInitialize();
     SchedulerInitialize();
 
-    PCB* pcb = gProcessManager->CreateProcess("test1e", 1, test1e, 20, 0, 0);
+    PCB* pcb = gProcessManager->CreateProcess(entryName, 1, tests[entry], 20, 0, 0);
     gScheduler->Dispatch();
 }                                               // End of osInit
