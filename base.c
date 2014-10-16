@@ -182,7 +182,7 @@ void    svc( SYSTEM_CALL_DATA *SystemCallData ) {
     }
 }                                               // End of svc
 
-ProcessEntry tests[10] = { test1a, 
+ProcessEntry tests[11] = { test1a, 
                            test1b,
                            test1c, 
                            test1d, 
@@ -191,7 +191,8 @@ ProcessEntry tests[10] = { test1a,
                            test1g, 
                            test1h, 
                            test1i, 
-                           test1j };
+                           test1j,
+                           test1k };
 
 /************************************************************************
     osInit
@@ -244,9 +245,9 @@ void    osInit( int argc, char *argv[]  ) {
             {
                 entry = argv[1][5] - 'a';
                 entryName = &argv[1][0];
-                if( entry > 9 )
+                if( entry > 10 )
                 {
-                    entry = 9;
+                    entry = 10;
                 }
             }
         }

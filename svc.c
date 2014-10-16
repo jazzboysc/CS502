@@ -109,11 +109,15 @@ void SVCTerminateProcess(SYSTEM_CALL_DATA* SystemCallData)
         *(long*)SystemCallData->Argument[1] = ERR_SUCCESS;
     }
 
-    LeaveCriticalSection(0);
+    //LeaveCriticalSection(0);
 
     if( terminateMyself == 1 )
     {
         gScheduler->OnProcessTerminate();
+    }
+    else
+    {
+        LeaveCriticalSection(0);
     }
 }
 //****************************************************************************
@@ -180,8 +184,10 @@ void SVCCreateProcess(SYSTEM_CALL_DATA* SystemCallData)
                                    (long*)SystemCallData->Argument[4]);
 
 #ifdef PRINT_STATE
+    SP_setup_action(SP_ACTION_MODE, "CREATE");
     gProcessManager->PrintState();
 #endif
+
     LeaveCriticalSection(0);
 }
 //****************************************************************************
@@ -222,7 +228,10 @@ void SVCStartTimer(SYSTEM_CALL_DATA* SystemCallData)
         MEM_READ(Z502TimerStatus, &Status);
     }
 
-    LeaveCriticalSection(0);
+#ifdef PRINT_STATE
+    SP_setup(SP_TARGET_MODE, pcb->processID);
+    SP_setup_action(SP_ACTION_MODE, "SLEEP");
+#endif
 
     gScheduler->OnProcessSleep();
 }
@@ -271,6 +280,12 @@ void SVCSuspendProcess(SYSTEM_CALL_DATA* SystemCallData)
             *(long*)SystemCallData->Argument[1] = ERR_SUCCESS;
         }
 
+#ifdef PRINT_STATE
+        SP_setup(SP_TARGET_MODE, pcb->processID);
+        SP_setup_action(SP_ACTION_MODE, "SUSPEND");
+        gProcessManager->PrintState();
+#endif
+
         LeaveCriticalSection(0);
     }
     else
@@ -280,7 +295,11 @@ void SVCSuspendProcess(SYSTEM_CALL_DATA* SystemCallData)
         gProcessManager->AddToSuspendedList(pcb);
         *(long*)SystemCallData->Argument[1] = ERR_SUCCESS;
 
-        LeaveCriticalSection(0);
+#ifdef PRINT_STATE
+        SP_setup(SP_TARGET_MODE, pcb->processID);
+        SP_setup_action(SP_ACTION_MODE, "SUSPEND");
+#endif
+
         gScheduler->OnProcessSuspend();
     }
 }
@@ -323,6 +342,12 @@ void SVCResumeProcess(SYSTEM_CALL_DATA* SystemCallData)
         *(long*)SystemCallData->Argument[1] = ERR_SUCCESS;
     }
 
+#ifdef PRINT_STATE
+    SP_setup(SP_TARGET_MODE, pcb->processID);
+    SP_setup_action(SP_ACTION_MODE, "RESUME");
+    gProcessManager->PrintState();
+#endif
+
     LeaveCriticalSection(0);
 }
 //****************************************************************************
@@ -361,7 +386,6 @@ void SVCChangeProcessPriority(SYSTEM_CALL_DATA* SystemCallData)
     }
 
     pcb->priority = *(int*)&SystemCallData->Argument[1];
-    pcb->currentPriority = pcb->priority;
     pcb->readyQueueKey = pcb->priority;
     if( pcb->state == PROCESS_STATE_READY )
     {
@@ -372,6 +396,12 @@ void SVCChangeProcessPriority(SYSTEM_CALL_DATA* SystemCallData)
     {
         int iStop = 0;
     }
+
+#ifdef PRINT_STATE
+    SP_setup(SP_TARGET_MODE, pcb->processID);
+    SP_setup_action(SP_ACTION_MODE, "CHANGE");
+    gProcessManager->PrintState();
+#endif
 
     *(long*)SystemCallData->Argument[2] = ERR_SUCCESS;
     LeaveCriticalSection(0);
@@ -510,7 +540,11 @@ void SVCReceiveMessage(SYSTEM_CALL_DATA* SystemCallData)
             // No message available. Suspend myself.
             PCB* pcb = gProcessManager->GetRunningProcess();
             gProcessManager->AddToSuspendedList(pcb);
-            LeaveCriticalSection(0);
+
+#ifdef PRINT_STATE
+            SP_setup(SP_TARGET_MODE, pcb->processID);
+            SP_setup_action(SP_ACTION_MODE, "RECEIVE");
+#endif
             gScheduler->OnProcessSuspend();
 
             // Resumed from suspension. Get message now.

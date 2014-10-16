@@ -1,6 +1,7 @@
 #include "scheduler.h"
 #include "os_common.h"
 #include "process_manager.h"
+#include "critical_section.h"
 
 Scheduler* gScheduler;
 
@@ -8,7 +9,7 @@ Scheduler* gScheduler;
 void MakeReadyToRun()
 {
     PCB* pcb = NULL;
-    gProcessManager->PopFromReadyQueue(&pcb);
+    pcb = gProcessManager->GetReadyQueueProcess(0);
     if( pcb )
     {
         if( pcb->state == PROCESS_STATE_DEAD )
@@ -16,10 +17,20 @@ void MakeReadyToRun()
             assert(0);
         }
 
+        if( pcb->readyQueueKey > LEGAL_PRIORITY_MAX )
+        {
+            gProcessManager->ResetReadyQueueKeys();
+        }
+
+        gProcessManager->PopFromReadyQueue(&pcb);
         gProcessManager->SetRunningProcess(pcb);
+        pcb->readyQueueKey += pcb->priority;
+
 #ifdef PRINT_STATE
         gProcessManager->PrintState();
 #endif
+
+        LeaveCriticalSection(0);
         Z502SwitchContext(SWITCH_CONTEXT_SAVE_MODE, &pcb->context);
     }
 }
@@ -51,6 +62,7 @@ void OnProcessTerminate()
     }
     else
     {
+        LeaveCriticalSection(0);
         Z502SwitchContext(SWITCH_CONTEXT_SAVE_MODE, 
             &gScheduler->schedulerPCB->context);
     }
@@ -64,6 +76,7 @@ void OnProcessSleep()
     }
     else
     {
+        LeaveCriticalSection(0);
         Z502SwitchContext(SWITCH_CONTEXT_SAVE_MODE, 
             &gScheduler->schedulerPCB->context);
     }
@@ -77,6 +90,7 @@ void OnProcessSuspend()
     }
     else
     {
+        LeaveCriticalSection(0);
         Z502SwitchContext(SWITCH_CONTEXT_SAVE_MODE,
             &gScheduler->schedulerPCB->context);
     }

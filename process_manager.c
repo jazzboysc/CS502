@@ -37,6 +37,12 @@ int GetReadyQueueProcessCount()
     return 0;
 }
 //****************************************************************************
+PCB* GetReadyQueueProcess(int i)
+{
+    assert(i >= 0 && i < gReadyQueue->heap.size);
+    return (PCB*)gReadyQueue->heap.buffer[i + 1].data;
+}
+//****************************************************************************
 int GetProcessCount()
 {
     if( gGlobalProcessList )
@@ -190,7 +196,6 @@ PCB* CreateProcess(char* name, int type, ProcessEntry entry, int priority,
     pcb->type = type;
     pcb->entry = entry;
     pcb->priority = priority;
-    pcb->currentPriority = priority;
     pcb->readyQueueKey = priority;
     size_t len = strlen(name);
     pcb->name = (char*)malloc(len + 1);
@@ -487,6 +492,23 @@ void PrintState()
     SP_print_line();
 }
 //****************************************************************************
+void ResetReadyQueueKeys()
+{
+    int i;
+    MinPriQueue* temp = (MinPriQueue*)ALLOC(MinPriQueue);
+    MinPriQueueInit(temp, MAX_PROCESS_NUM);
+
+    for( i = 0; i < gReadyQueue->heap.size; ++i )
+    {
+        PCB* pcb = GetReadyQueueProcess(i);
+        pcb->readyQueueKey = pcb->priority;
+        MinPriQueuePush(temp, pcb->readyQueueKey, (void*)pcb);
+    }
+
+    DEALLOC(gReadyQueue);
+    gReadyQueue = temp;
+}
+//****************************************************************************
 
 //****************************************************************************
 void ProcessManagerInitialize()
@@ -501,6 +523,7 @@ void ProcessManagerInitialize()
     gProcessManager->GetReadyQueueProcessCount = GetReadyQueueProcessCount;
     gProcessManager->GetTimerQueueProcessCount = GetTimerQueueProcessCount;
     gProcessManager->GetTimerQueueProcess = GetTimerQueueProcess;
+    gProcessManager->GetReadyQueueProcess = GetReadyQueueProcess;
     gProcessManager->PopFromReadyQueue = PopFromReadyQueue;
     gProcessManager->PopFromTimerQueue = PopFromTimerQueue;
     gProcessManager->PushToReadyQueue = PushToReadyQueue;
@@ -522,6 +545,7 @@ void ProcessManagerInitialize()
     gProcessManager->BroadcastMessage = BroadcastMessage;
     gProcessManager->GetFirstMessage = GetFirstMessage;
     gProcessManager->PrintState = PrintState;
+    gProcessManager->ResetReadyQueueKeys = ResetReadyQueueKeys;
 
     // Init OS global variables.
     gGlobalProcessList = (List*)ALLOC(List);

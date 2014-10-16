@@ -8,6 +8,7 @@ typedef int  (*ProcessManagerGetProcessCount)();
 typedef int  (*ProcessManagerGetTimerQueueProcessCount)();
 typedef PCB* (*ProcessManagerGetTimerQueueProcess)(int i);
 typedef int  (*ProcessManagerGetReadyQueueProcessCount)();
+typedef PCB* (*ProcessManagerGetReadyQueueProcess)(int i);
 typedef PCB* (*ProcessManagerGetPCBByID)(long processID);
 typedef PCB* (*ProcessManagerGetPCBByName)(char* name);
 typedef PCB* (*ProcessManagerGetPCBByContext)(void* context);
@@ -33,6 +34,7 @@ typedef int (*ProcessManagerGetMessageListCount)(PCB* pcb);
 typedef int (*ProcessManagerBroadcastMessage)(long senderProcessID, Message* msg);
 typedef Message* (*ProcessManagerGetFirstMessage)(PCB* pcb);
 typedef void (*ProcessManagerPrintState)();
+typedef void (*ProcessManagerResetReadyQueueKeys)();
 
 // Process manager is a global singleton object used to manage processes.
 typedef struct ProcessManager
@@ -41,6 +43,7 @@ typedef struct ProcessManager
     ProcessManagerGetTimerQueueProcessCount    GetTimerQueueProcessCount;
     ProcessManagerGetTimerQueueProcess         GetTimerQueueProcess;
     ProcessManagerGetReadyQueueProcessCount    GetReadyQueueProcessCount;
+    ProcessManagerGetReadyQueueProcess         GetReadyQueueProcess;
     ProcessManagerGetPCBByID                   GetPCBByID;
     ProcessManagerGetPCBByName                 GetPCBByName;
     ProcessManagerGetPCBByContext              GetPCBByContext;
@@ -72,6 +75,7 @@ typedef struct ProcessManager
     ProcessManagerGetFirstMessage              GetFirstMessage;
 
     ProcessManagerPrintState                   PrintState;
+    ProcessManagerResetReadyQueueKeys          ResetReadyQueueKeys;
 
 } ProcessManager;
 

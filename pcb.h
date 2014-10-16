@@ -23,7 +23,6 @@ typedef struct _PCB
     long          processID;
     ProcessEntry  entry;
     int           priority;
-    int           currentPriority;
     int           timerQueueKey;
     int           readyQueueKey;
     int           state; // 1 : ready 2 : sleep 3 : running
