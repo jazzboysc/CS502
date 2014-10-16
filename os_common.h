@@ -16,7 +16,7 @@
 #include "memory.h"
 
 #define LEGAL_PRIORITY_MIN 1
-#define LEGAL_PRIORITY_MAX 100
+#define LEGAL_PRIORITY_MAX 200
 #define LEGAL_MESSAGE_LENGTH_MAX 256
 #define MAX_MESSAGE_LIST_NUM 16
 

@@ -106,5 +106,8 @@
     <ClCompile Include="critical_section.c">
       <Filter>Modules</Filter>
     </ClCompile>
+    <ClCompile Include="mytest.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

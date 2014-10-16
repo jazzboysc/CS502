@@ -89,6 +89,7 @@
     <ClCompile Include="heap.c" />
     <ClCompile Include="interrupt_handler.c" />
     <ClCompile Include="list.c" />
+    <ClCompile Include="mytest.c" />
     <ClCompile Include="priority_queue.c" />
     <ClCompile Include="process_manager.c">
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
