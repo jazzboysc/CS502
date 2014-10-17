@@ -1,3 +1,8 @@
+//****************************************************************************
+// CS 502 Operating System Project.
+// Che Sun at Worcester Polytechnic Institute, Fall 2014.
+//****************************************************************************
+
 #include "process_manager.h"
 #include "os_common.h"
 

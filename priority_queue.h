@@ -1,3 +1,8 @@
+//****************************************************************************
+// CS 502 Operating System Project.
+// Che Sun at Worcester Polytechnic Institute, Fall 2014.
+//****************************************************************************
+
 #ifndef PRIORITY_QUEUE_H_
 #define PRIORITY_QUEUE_H_
 

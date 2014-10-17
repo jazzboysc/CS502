@@ -1,3 +1,8 @@
+//****************************************************************************
+// CS 502 Operating System Project.
+// Che Sun at Worcester Polytechnic Institute, Fall 2014.
+//****************************************************************************
+
 /************************************************************************
 
         This code forms the base of the operating system you will
