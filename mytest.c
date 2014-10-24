@@ -51,6 +51,12 @@ void mytestx(void)
 
 }
 //****************************************************************************
+// Preemptive-based Dispatching Test
+// Please type “cs502 test1l” and see my preemptive algorithm implemented in 
+// the scheduler module. Notice that processes 3 and 4 with high priorities 
+// get much more chances running than process 5, 6 and 7 who have low 
+// priorities.
+//****************************************************************************
 void mytest(void)
 {
     CREATE_PROCESS("mytest_a", mytestx, PRIORITY_1, &Z502_REG3, &Z502_REG9);

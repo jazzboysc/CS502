@@ -25,6 +25,7 @@ typedef struct _HeapItem
 
 typedef int(*HeapCompareKey)(HeapItemKey* key1, HeapItemKey* key2);
 
+// A generic heap.
 typedef struct _Heap
 {
     HeapItem* buffer;

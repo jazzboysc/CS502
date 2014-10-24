@@ -187,7 +187,8 @@ void    svc( SYSTEM_CALL_DATA *SystemCallData ) {
     }
 }                                               // End of svc
 
-extern void mytest(void);
+// Test entry functions.
+void mytest(void);
 ProcessEntry tests[12] = { test1a, 
                            test1b,
                            test1c, 
@@ -239,6 +240,7 @@ void    osInit( int argc, char *argv[]  ) {
         Z502SwitchContext( SWITCH_CONTEXT_KILL_MODE, &next_context );
     }                   /* This routine should never return!!           */
 
+    // Figure out which test we need to run.
     int entry = 0;
     char* entryName = "";
     if( argc > 1 )
@@ -260,9 +262,11 @@ void    osInit( int argc, char *argv[]  ) {
         }
     }
 
+    // Initialize process manager and scheduler.
     ProcessManagerInitialize();
     SchedulerInitialize();
 
+    // Create main user process.
     PCB* pcb = gProcessManager->CreateProcess(entryName, 1, tests[entry], 20, 0, 0);
     gScheduler->Dispatch();
 }                                               // End of osInit

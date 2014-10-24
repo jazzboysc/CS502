@@ -32,6 +32,7 @@ void SVCGetProcessID(SYSTEM_CALL_DATA* SystemCallData)
     }
     else
     {
+        // Find process by a given name.
         PCB* pcb = gProcessManager->GetPCBByName((char*)SystemCallData->Argument[0]);
         if( pcb )
         {
@@ -106,6 +107,7 @@ void SVCTerminateProcess(SYSTEM_CALL_DATA* SystemCallData)
             terminateMyself = 1;
         }
 
+        // Kill the process.
         gProcessManager->TerminateProcess(pcb);
     }
 
@@ -114,10 +116,10 @@ void SVCTerminateProcess(SYSTEM_CALL_DATA* SystemCallData)
         *(long*)SystemCallData->Argument[1] = ERR_SUCCESS;
     }
 
-    //LeaveCriticalSection(0);
-
     if( terminateMyself == 1 )
     {
+        // If the process is terminating itself, let scheduler dispatch 
+        // another one.
         gScheduler->OnProcessTerminate();
     }
     else
@@ -130,6 +132,7 @@ void SVCCreateProcess(SYSTEM_CALL_DATA* SystemCallData)
 {
     long* dstErr = (long*)SystemCallData->Argument[4];
 
+    // Check if we have reached the maximum amount of user processes.
     int processCount = gProcessManager->GetProcessCount();
     if( processCount >= MAX_PROCESS_NUM )
     {
@@ -140,6 +143,7 @@ void SVCCreateProcess(SYSTEM_CALL_DATA* SystemCallData)
         return;
     }
 
+    // Check if the priority specified is legal.
     if( (long)SystemCallData->Argument[2] < LEGAL_PRIORITY_MIN ||
         (long)SystemCallData->Argument[2] > LEGAL_PRIORITY_MAX )
     {
@@ -150,6 +154,7 @@ void SVCCreateProcess(SYSTEM_CALL_DATA* SystemCallData)
         return;
     }
 
+    // Check if the name specified is legal.
     char* name = (char*)SystemCallData->Argument[0];
     if( !name )
     {
@@ -170,6 +175,7 @@ void SVCCreateProcess(SYSTEM_CALL_DATA* SystemCallData)
         return;
     }
 
+    // Check if the entry function specified is legal.
     ProcessEntry entry = (ProcessEntry)SystemCallData->Argument[1];
     if( !entry )
     {
@@ -180,6 +186,7 @@ void SVCCreateProcess(SYSTEM_CALL_DATA* SystemCallData)
         return;
     }
 
+    // Ask process manager to create a process.
     EnterCriticalSection(0);
     gProcessManager->CreateProcess((char*)SystemCallData->Argument[0],
                                    1,
@@ -207,11 +214,13 @@ void SVCStartTimer(SYSTEM_CALL_DATA* SystemCallData)
     // Find caller's PCB.
     PCB* pcb = gProcessManager->GetRunningProcess();
 
+    // Compute the absolute time.
     CALL(MEM_READ(Z502ClockStatus, &currentTime));
     sleepTime = *((INT32*)&SystemCallData->Argument[0]);
     pcb->timerQueueKey = currentTime + sleepTime;
 
     // Check timer queue to see if there is a process to be awakened earlier.
+    // If we want to wake earlier, then we must restart the timer.
     int needRestartTimer = 1;
     if( gProcessManager->GetTimerQueueProcessCount() > 0 )
     {
@@ -238,6 +247,7 @@ void SVCStartTimer(SYSTEM_CALL_DATA* SystemCallData)
     SP_setup_action(SP_ACTION_MODE, "SLEEP");
 #endif
 
+    // Ask the scheduler to dispatch another process.
     gScheduler->OnProcessSleep();
 }
 //****************************************************************************
@@ -278,6 +288,7 @@ void SVCSuspendProcess(SYSTEM_CALL_DATA* SystemCallData)
             return;
         }
 
+        // Suspend the specified process.
         if( pcb->state == PROCESS_STATE_READY )
         {
             gProcessManager->RemoveFromReadyQueueByID(pcb->processID);
@@ -305,6 +316,8 @@ void SVCSuspendProcess(SYSTEM_CALL_DATA* SystemCallData)
         SP_setup_action(SP_ACTION_MODE, "SUSPEND");
 #endif
 
+        // If we suspend ourself, then ask the scheduler to dispatch another
+        // process.
         gScheduler->OnProcessSuspend();
     }
 }
@@ -313,6 +326,7 @@ void SVCResumeProcess(SYSTEM_CALL_DATA* SystemCallData)
 {
     EnterCriticalSection(0);
 
+    // Check if the process specified exists.
     long processID = (long)SystemCallData->Argument[0];
     PCB* pcb = gProcessManager->GetPCBByID(processID);
 
@@ -325,6 +339,7 @@ void SVCResumeProcess(SYSTEM_CALL_DATA* SystemCallData)
         return;
     }
 
+    // Check if the process has been resumed.
     if( pcb->state != PROCESS_STATE_SUSPENDED &&
         pcb->state != PROCESS_STATE_SUSPENDING )
     {
@@ -335,6 +350,7 @@ void SVCResumeProcess(SYSTEM_CALL_DATA* SystemCallData)
         return;
     }
 
+    // Resume a process that is being suspended.
     if( pcb->state == PROCESS_STATE_SUSPENDING )
     {
         pcb->state = PROCESS_STATE_SLEEPING;
@@ -360,6 +376,7 @@ void SVCChangeProcessPriority(SYSTEM_CALL_DATA* SystemCallData)
 {
     EnterCriticalSection(0);
 
+    // Check if the new priority specified is legal.
     if( (long)SystemCallData->Argument[1] < LEGAL_PRIORITY_MIN ||
         (long)SystemCallData->Argument[1] > LEGAL_PRIORITY_MAX )
     {
@@ -370,6 +387,7 @@ void SVCChangeProcessPriority(SYSTEM_CALL_DATA* SystemCallData)
         return;
     }
 
+    // Check if the process exits.
     long processID = (long)SystemCallData->Argument[0];
     PCB* pcb = NULL;
     if( processID == -1 )
@@ -390,10 +408,12 @@ void SVCChangeProcessPriority(SYSTEM_CALL_DATA* SystemCallData)
         return;
     }
 
+    // Change priority and reset readyQueueKey.
     pcb->priority = *(int*)&SystemCallData->Argument[1];
     pcb->readyQueueKey = pcb->priority;
     if( pcb->state == PROCESS_STATE_READY )
     {
+        // Adjust its position in ready queue.
         gProcessManager->RemoveFromReadyQueueByID(pcb->processID);
         gProcessManager->PushToReadyQueue(pcb);
     }
@@ -428,6 +448,7 @@ void SVCSendMessage(SYSTEM_CALL_DATA* SystemCallData)
 
     long processID = (long)SystemCallData->Argument[0];
 
+    // Check if message length is too long.
     if( (long)SystemCallData->Argument[2] > LEGAL_MESSAGE_LENGTH_MAX )
     {
         *(long*)SystemCallData->Argument[3] =
@@ -445,6 +466,7 @@ void SVCSendMessage(SYSTEM_CALL_DATA* SystemCallData)
         char* msg = (char*)SystemCallData->Argument[1];
         Message* m = CreateMessage(msg, *(int*)&SystemCallData->Argument[2]);
 
+        // Broadcast this message.
         int res = gProcessManager->BroadcastMessage(
             gProcessManager->GetRunningProcess()->processID, m);
         DEALLOC(m);

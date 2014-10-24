@@ -4,6 +4,7 @@
 #include "list.h"
 #include "message.h"
 
+// Process states.
 #define PROCESS_STATE_UNKNOWN    0
 #define PROCESS_STATE_READY      1
 #define PROCESS_STATE_SLEEPING   2
@@ -15,6 +16,7 @@
 #define PROCESS_TYPE_SCHEDULER 0
 #define PROCESS_TYPE_USER      1
 
+// Process control block.
 typedef void(*ProcessEntry)(void);
 typedef struct _PCB
 {
@@ -25,8 +27,10 @@ typedef struct _PCB
     int           priority;
     int           timerQueueKey;
     int           readyQueueKey;
-    int           state; // 1 : ready 2 : sleep 3 : running
+    int           state;
     void*         context;
+
+    // Each process has a message list that is used to recieve messages.
     List*         messages;
 
 } PCB;

@@ -8,6 +8,7 @@
 
 #include "pcb.h"
 
+// Scheduler function pointers.
 typedef void (*SchedulerOnRedispatch)();
 typedef void (*SchedulerOnProcessTerminate)();
 typedef void (*SchedulerOnProcessSleep)();
@@ -25,9 +26,11 @@ typedef struct Scheduler
     PCB* schedulerPCB;
 } Scheduler;
 
+// Create scheduler when the OS boots.
 void SchedulerInitialize();
 void SchedulerTerminate();
 
+// Scheduler global singleton object.
 extern Scheduler* gScheduler;
 
 #endif

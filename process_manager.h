@@ -44,6 +44,7 @@ typedef void (*ProcessManagerResetReadyQueueKeys)();
 // Process manager is a global singleton object used to manage processes.
 typedef struct ProcessManager
 {
+    // Process access interfaces.
     ProcessManagerGetProcessCount              GetProcessCount;
     ProcessManagerGetTimerQueueProcessCount    GetTimerQueueProcessCount;
     ProcessManagerGetTimerQueueProcess         GetTimerQueueProcess;
@@ -53,6 +54,7 @@ typedef struct ProcessManager
     ProcessManagerGetPCBByName                 GetPCBByName;
     ProcessManagerGetPCBByContext              GetPCBByContext;
 
+    // Process control interfaces.
     ProcessManagerRemovePCBFromGlobalListByID  RemovePCBFromGlobalListByID;
     ProcessManagerRemoveFromTimerQueueByID     RemoveFromTimerQueueByID;
     ProcessManagerRemoveFromReadyQueueByID     RemoveFromReadyQueueByID;
@@ -63,15 +65,13 @@ typedef struct ProcessManager
     ProcessManagerCreateProcess                CreateProcess;
     ProcessManagerTerminateAllProcess          TerminateAllProcess;
     ProcessManagerTerminateProcess             TerminateProcess;
-
     ProcessManagerSetRunningProcess            SetRunningProcess;
     ProcessManagerGetRunningProcess            GetRunningProcess;
-
     ProcessManagerIsAllDead                    IsAllDead;
-
     ProcessManagerAddToSuspendedList           AddToSuspendedList;
     ProcessManagerRemoveFromSuspendedListByID  RemoveFromSuspendedListByID;
 
+    // Process message interfaces.
     ProcessManagerAddMessage                   AddMessage;
     ProcessManagerRemoveMessageBySenderID      RemoveMessageBySenderID;
     ProcessManagerGetMessageBySenderID         GetMessageBySenderID;
@@ -79,14 +79,19 @@ typedef struct ProcessManager
     ProcessManagerBroadcastMessage             BroadcastMessage;
     ProcessManagerGetFirstMessage              GetFirstMessage;
 
+    // Print dispatching state.
     ProcessManagerPrintState                   PrintState;
+
+    // Dispatching cycle reset.
     ProcessManagerResetReadyQueueKeys          ResetReadyQueueKeys;
 
 } ProcessManager;
 
+// Create process manager when the OS boots.
 void ProcessManagerInitialize();
 void ProcessManagerTerminate();
 
+// Process manager global singleton object.
 extern ProcessManager* gProcessManager;
 
 #endif

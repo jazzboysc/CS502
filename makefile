@@ -16,6 +16,7 @@ SOURCES = base.c \
           state_printer.c \
           svc.c \
           test.c \
+          mytest.c \
           z502.c
 
 OBJECTS = $(SOURCES:.cpp=.o)

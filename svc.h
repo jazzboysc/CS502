@@ -8,6 +8,7 @@
 
 #include "syscalls.h"
 
+// SVC functions are called by SVC handler.
 void SVCGetProcessID(SYSTEM_CALL_DATA* SystemCallData);
 void SVCTerminateProcess(SYSTEM_CALL_DATA* SystemCallData);
 void SVCCreateProcess(SYSTEM_CALL_DATA* SystemCallData);

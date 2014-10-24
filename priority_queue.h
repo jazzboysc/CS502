@@ -8,6 +8,7 @@
 
 #include "heap.h"
 
+// Maximum priority queue.
 typedef struct _MaxPriQueue
 {
     Heap heap;
@@ -19,6 +20,7 @@ void MaxPriQueuePop(MaxPriQueue* queue, HeapItem* dst);
 void MaxPriQueuePush(MaxPriQueue* queue, int key, void* data);
 void MaxPriQueueRemove(MaxPriQueue* queue, int i, HeapItem* dst);
 
+// Minimum priority queue.
 typedef struct _MinPriQueue
 {
     Heap heap;

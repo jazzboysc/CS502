@@ -8,6 +8,7 @@
 
 #include "os_common.h"
 
+// Process message.
 typedef struct _Message
 {
     long senderProcessID;

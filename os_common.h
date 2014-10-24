@@ -25,6 +25,7 @@
 #define LEGAL_MESSAGE_LENGTH_MAX 256
 #define MAX_MESSAGE_LIST_NUM 16
 
+// SVC errors.
 #define MAX_PROCESS_NUM 9
 #define ERR_CREAT_PROCESS_ILLEGAL_PRIORITY  22L
 #define ERR_CREAT_PROCESS_ILLEGAL_NAME      23L
@@ -38,6 +39,7 @@
 #define ERR_DST_BUFFER_TOO_SMALL            46L
 #define ERR_REACH_MAX_MSG_COUNT             47L
 
+// Print out process queues and lists state.
 #define PRINT_STATE
 
 #endif

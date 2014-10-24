@@ -23,8 +23,12 @@ void EnterCriticalSection(int i)
     gTurn = j;
     while( gFlags[j] == 1 && gTurn == j )
     {
-        //printf("Waiting for cs.\n");
     }
+
+    // There is a bug when using this macro. In test1e, if we allow the main 
+    // process suspend itself, then we must ask the scheduler dispatch the 
+    // child process. But the child process is blocked by this macro even if
+    // The main process unlock the memory location.
     //READ_MODIFY(MEMORY_INTERLOCK_BASE, DO_LOCK, TRUE,
     //    &gResult);
 }
@@ -32,6 +36,10 @@ void EnterCriticalSection(int i)
 void LeaveCriticalSection(int i)
 {
     gFlags[i] = 0;
+    // There is a bug when using this macro. In test1e, if we allow the main 
+    // process suspend itself, then we must ask the scheduler dispatch the 
+    // child process. But the child process is blocked by this macro even if
+    // The main process unlock the memory location.
     //READ_MODIFY(MEMORY_INTERLOCK_BASE, DO_UNLOCK, TRUE,
     //    &gResult);
 }

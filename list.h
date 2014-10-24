@@ -17,6 +17,7 @@ typedef struct ListNode
     struct ListNode* next;
 } ListNode;
 
+// A simple single list.
 typedef struct _List
 {
     ListNode* head;

@@ -6,6 +6,7 @@
 #ifndef CRITICAL_SECTION_H_
 #define CRITICAL_SECTION_H_
 
+// Critical section helper functions.
 void EnterCriticalSection(int i);
 void LeaveCriticalSection(int i);
 
