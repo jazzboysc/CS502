@@ -67,6 +67,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="critical_section.h" />
+    <ClInclude Include="fault_handler.h" />
     <ClInclude Include="global.h" />
     <ClInclude Include="heap.h" />
     <ClInclude Include="interrupt_handler.h" />
@@ -86,6 +87,7 @@
   <ItemGroup>
     <ClCompile Include="base.c" />
     <ClCompile Include="critical_section.c" />
+    <ClCompile Include="fault_handler.c" />
     <ClCompile Include="heap.c" />
     <ClCompile Include="interrupt_handler.c" />
     <ClCompile Include="list.c" />

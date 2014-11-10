@@ -32,6 +32,7 @@
 #include "process_manager.h"
 #include "scheduler.h"
 #include "interrupt_handler.h"
+#include "fault_handler.h"
 #include "critical_section.h"
 
 extern void          *TO_VECTOR [];
@@ -97,6 +98,10 @@ void    fault_handler( void )
 
     switch( device_id )
     {
+    case 2:
+        FHMemoryFault(status);
+        break;
+
     case 4:
         Z502Halt();
         break;
@@ -189,7 +194,7 @@ void    svc( SYSTEM_CALL_DATA *SystemCallData ) {
 
 // Test entry functions.
 void mytest(void);
-ProcessEntry tests[12] = { test1a, 
+ProcessEntry tests[14] = { test1a, 
                            test1b,
                            test1c, 
                            test1d, 
@@ -200,7 +205,9 @@ ProcessEntry tests[12] = { test1a,
                            test1i, 
                            test1j,
                            test1k,
-                           mytest };
+                           mytest,
+                           test2a,
+                           test2b };
 
 /************************************************************************
     osInit
@@ -250,13 +257,18 @@ void    osInit( int argc, char *argv[]  ) {
             argv[1][2] == 's' &&
             argv[1][3] == 't' )
         {
-            if( argv[1][4] == '1' )
+            if( argv[1][4] == '1' || argv[1][4] == '2' )
             {
                 entry = argv[1][5] - 'a';
                 entryName = &argv[1][0];
                 if( entry > 11 )
                 {
                     entry = 11;
+                }
+
+                if( argv[1][4] == '2' )
+                {
+                    entry += 12;
                 }
             }
         }

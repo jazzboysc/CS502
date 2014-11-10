@@ -39,6 +39,9 @@
 #define ERR_DST_BUFFER_TOO_SMALL            46L
 #define ERR_REACH_MAX_MSG_COUNT             47L
 
+extern UINT16 *Z502_PAGE_TBL_ADDR;
+extern INT16 Z502_PAGE_TBL_LENGTH;
+
 // Print out process queues and lists state.
 #define PRINT_STATE
 
