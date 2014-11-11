@@ -31,6 +31,7 @@
 #include "svc.h"
 #include "process_manager.h"
 #include "scheduler.h"
+#include "memory_manager.h"
 #include "interrupt_handler.h"
 #include "fault_handler.h"
 #include "critical_section.h"
@@ -274,9 +275,10 @@ void    osInit( int argc, char *argv[]  ) {
         }
     }
 
-    // Initialize process manager and scheduler.
+    // Initialize process manager, scheduler and memory manager.
     ProcessManagerInitialize();
     SchedulerInitialize();
+    MemoryManagerInitialize();
 
     // Create main user process.
     PCB* pcb = gProcessManager->CreateProcess(entryName, 1, tests[entry], 20, 0, 0);

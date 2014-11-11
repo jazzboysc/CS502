@@ -68,6 +68,9 @@
     <ClInclude Include="fault_handler.h">
       <Filter>Modules</Filter>
     </ClInclude>
+    <ClInclude Include="memory_manager.h">
+      <Filter>Modules</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="sample.c">
@@ -113,6 +116,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="fault_handler.c">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="memory_manager.c">
       <Filter>Modules</Filter>
     </ClCompile>
   </ItemGroup>

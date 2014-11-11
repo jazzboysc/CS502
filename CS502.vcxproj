@@ -73,6 +73,7 @@
     <ClInclude Include="interrupt_handler.h" />
     <ClInclude Include="list.h" />
     <ClInclude Include="memory.h" />
+    <ClInclude Include="memory_manager.h" />
     <ClInclude Include="message.h" />
     <ClInclude Include="os_common.h" />
     <ClInclude Include="pcb.h" />
@@ -91,6 +92,7 @@
     <ClCompile Include="heap.c" />
     <ClCompile Include="interrupt_handler.c" />
     <ClCompile Include="list.c" />
+    <ClCompile Include="memory_manager.c" />
     <ClCompile Include="mytest.c" />
     <ClCompile Include="priority_queue.c" />
     <ClCompile Include="process_manager.c">
