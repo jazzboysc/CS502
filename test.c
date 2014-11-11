@@ -1325,7 +1325,7 @@ void test2b(void) {
         printf("PID= %ld  address= %ld  written= %ld   read= %ld\n", Z502_REG4,
                 Z502_REG3, Z502_REG1, Z502_REG2);
         if (Z502_REG2 != Z502_REG1)
-            printf("AN ERROR HAS OCCURRED 1.\n");
+            printf("AN ERROR HAS OCCURRED.\n");
 
         //      Go back and check earlier write
         MEM_READ(Z502_REG8, &Z502_REG7);
@@ -1333,7 +1333,7 @@ void test2b(void) {
         printf("PID= %ld  address= %ld   written= %ld   read= %ld\n",
                 Z502_REG4, Z502_REG8, Z502_REG6, Z502_REG7);
         if (Z502_REG6 != Z502_REG7)
-            printf("AN ERROR HAS OCCURRED 2.\n");
+            printf("AN ERROR HAS OCCURRED.\n");
         Z502_REG5++;
     }
 }                            // End of test2b    
