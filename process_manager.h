@@ -7,6 +7,7 @@
 #define PROCESS_MANAGER_H_
 
 #include "pcb.h"
+#include "disk_operation.h"
 
 // Process manager function pointers.
 typedef int  (*ProcessManagerGetProcessCount)();
@@ -40,6 +41,10 @@ typedef int (*ProcessManagerBroadcastMessage)(long senderProcessID, Message* msg
 typedef Message* (*ProcessManagerGetFirstMessage)(PCB* pcb);
 typedef void (*ProcessManagerPrintState)();
 typedef void (*ProcessManagerResetReadyQueueKeys)();
+typedef void (*ProcessManagerPushToDiskOperationToDoList)(DiskOperation* diskOp);
+typedef void (*ProcessManagerPopFromDiskOperationToDoList)(DiskOperation** diskOp);
+typedef void (*ProcessManagerPushToDiskOperationWaitList)(DiskOperation* diskOp);
+typedef void (*ProcessManagerPopFromDiskOperationWaitList)(DiskOperation** diskOp);
 
 // Process manager is a global singleton object used to manage processes.
 typedef struct ProcessManager
@@ -84,6 +89,12 @@ typedef struct ProcessManager
 
     // Dispatching cycle reset.
     ProcessManagerResetReadyQueueKeys          ResetReadyQueueKeys;
+
+    // Disk operation interfaces.
+    ProcessManagerPushToDiskOperationToDoList  PushToDiskOperationToDoList;
+    ProcessManagerPopFromDiskOperationToDoList PopFromDiskOperationToDoList;
+    ProcessManagerPushToDiskOperationWaitList  PushToDiskOperationWaitList;
+    ProcessManagerPopFromDiskOperationWaitList PopFromDiskOperationWaitList;
 
 } ProcessManager;
 

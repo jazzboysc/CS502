@@ -10,6 +10,7 @@
 #include "process_manager.h"
 #include "scheduler.h"
 #include "critical_section.h"
+#include "disk_operation.h"
 
 //****************************************************************************
 void SVCGetProcessID(SYSTEM_CALL_DATA* SystemCallData)
@@ -643,5 +644,50 @@ void SVCReceiveMessage(SYSTEM_CALL_DATA* SystemCallData)
 
     *(long*)SystemCallData->Argument[5] = ERR_SUCCESS;
     LeaveCriticalSection(0);
+}
+//****************************************************************************
+void SVCWriteDisk(SYSTEM_CALL_DATA* SystemCallData)
+{
+    EnterCriticalSection(0);
+
+    // Create a disk operation structure for the process.
+    PCB* pcb = gProcessManager->GetRunningProcess();
+    DiskOperation* diskOp = ALLOC(DiskOperation);
+    diskOp->requester = pcb;
+    diskOp->isRead = 0;
+    diskOp->diskID = (long)SystemCallData->Argument[0];
+    diskOp->sector = (long)SystemCallData->Argument[1];
+    diskOp->buffer = (char*)SystemCallData->Argument[2];
+
+    INT32 temp;
+    MEM_WRITE(Z502DiskSetID, &diskOp->diskID);
+    MEM_READ(Z502DiskStatus, &temp);
+    if( temp == DEVICE_FREE )
+    {
+        gProcessManager->PushToDiskOperationWaitList(diskOp);
+
+        // Start disk write operation right now since disk is free.
+        MEM_WRITE(Z502DiskSetID, &diskOp->diskID);
+        MEM_WRITE(Z502DiskSetSector, &diskOp->sector);
+        MEM_WRITE(Z502DiskSetBuffer, (INT32*)diskOp->buffer);
+        temp = 1;
+        MEM_WRITE(Z502DiskSetAction, &temp);
+        temp = 0;
+        MEM_WRITE(Z502DiskStart, &temp);
+
+        //MEM_READ(Z502DiskStatus, &temp);
+        //assert( temp == DEVICE_IN_USE );
+    }
+    else
+    {
+
+    }
+
+    LeaveCriticalSection(0);
+}
+//****************************************************************************
+void SVCReadDisk(SYSTEM_CALL_DATA* SystemCallData)
+{
+
 }
 //****************************************************************************

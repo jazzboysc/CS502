@@ -71,6 +71,9 @@
     <ClInclude Include="memory_manager.h">
       <Filter>Modules</Filter>
     </ClInclude>
+    <ClInclude Include="disk_operation.h">
+      <Filter>Util</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="sample.c">

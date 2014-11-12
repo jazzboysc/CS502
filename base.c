@@ -186,6 +186,14 @@ void    svc( SYSTEM_CALL_DATA *SystemCallData ) {
         SVCReceiveMessage(SystemCallData);
         break;
 
+    case SYSNUM_DISK_WRITE:
+        SVCWriteDisk(SystemCallData);
+        break;
+
+    case SYSNUM_DISK_READ:
+        SVCReadDisk(SystemCallData);
+        break;
+
     default:
         printf("ERROR!  call_type not recognized!\n");
         printf("Call_type is - %i\n", call_type);
@@ -195,7 +203,7 @@ void    svc( SYSTEM_CALL_DATA *SystemCallData ) {
 
 // Test entry functions.
 void mytest(void);
-ProcessEntry tests[14] = { test1a, 
+ProcessEntry tests[20] = { test1a, 
                            test1b,
                            test1c, 
                            test1d, 
@@ -208,7 +216,13 @@ ProcessEntry tests[14] = { test1a,
                            test1k,
                            mytest,
                            test2a,
-                           test2b };
+                           test2b,
+                           test2c,
+                           test2d,
+                           test2e,
+                           test2f,
+                           test2g,
+                           test2h };
 
 /************************************************************************
     osInit
