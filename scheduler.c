@@ -115,6 +115,22 @@ void OnProcessSuspend()
     }
 }
 //****************************************************************************
+void OnProcessWait()
+{
+    // Dispatch a process that is ready.
+    if( gProcessManager->GetReadyQueueProcessCount() > 0 )
+    {
+        MakeReadyToRun();
+    }
+    else
+    {
+        // No process is ready, swtich to scheduler process.
+        LeaveCriticalSection(0);
+        Z502SwitchContext(SWITCH_CONTEXT_SAVE_MODE,
+            &gScheduler->schedulerPCB->context);
+    }
+}
+//****************************************************************************
 void Dispatch()
 {
     MakeReadyToRun();
@@ -130,6 +146,7 @@ void SchedulerInitialize()
     gScheduler->OnProcessSleep = OnProcessSleep;
     gScheduler->OnProcessTerminate = OnProcessTerminate;
     gScheduler->OnProcessSuspend = OnProcessSuspend;
+    gScheduler->OnProcessWait = OnProcessWait;
     gScheduler->Dispatch = Dispatch;
 
     // Create a system process for scheduler.

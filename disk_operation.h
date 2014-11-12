@@ -7,7 +7,7 @@ typedef struct DiskOperation
 {
     long diskID;
     long sector;
-    int  isRead;
+    int  isWrite;
     char* buffer;
     PCB*  requester;
 

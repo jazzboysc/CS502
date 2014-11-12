@@ -654,7 +654,7 @@ void SVCWriteDisk(SYSTEM_CALL_DATA* SystemCallData)
     PCB* pcb = gProcessManager->GetRunningProcess();
     DiskOperation* diskOp = ALLOC(DiskOperation);
     diskOp->requester = pcb;
-    diskOp->isRead = 0;
+    diskOp->isWrite = 1;
     diskOp->diskID = (long)SystemCallData->Argument[0];
     diskOp->sector = (long)SystemCallData->Argument[1];
     diskOp->buffer = (char*)SystemCallData->Argument[2];
@@ -670,8 +670,8 @@ void SVCWriteDisk(SYSTEM_CALL_DATA* SystemCallData)
         MEM_WRITE(Z502DiskSetID, &diskOp->diskID);
         MEM_WRITE(Z502DiskSetSector, &diskOp->sector);
         MEM_WRITE(Z502DiskSetBuffer, (INT32*)diskOp->buffer);
-        temp = 1;
-        MEM_WRITE(Z502DiskSetAction, &temp);
+        MEM_WRITE(Z502DiskSetAction, &diskOp->isWrite);
+
         temp = 0;
         MEM_WRITE(Z502DiskStart, &temp);
 
@@ -680,14 +680,50 @@ void SVCWriteDisk(SYSTEM_CALL_DATA* SystemCallData)
     }
     else
     {
-
+        // Disk is busy now. Put the requester to disk operation todo list.
+        gProcessManager->PushToDiskOperationToDoList(diskOp);
+        gProcessManager->PushToDiskOperationWaitList(diskOp);
     }
 
-    LeaveCriticalSection(0);
+    gScheduler->OnProcessWait();
 }
 //****************************************************************************
 void SVCReadDisk(SYSTEM_CALL_DATA* SystemCallData)
 {
+    EnterCriticalSection(0);
 
+    // Create a disk operation structure for the process.
+    PCB* pcb = gProcessManager->GetRunningProcess();
+    DiskOperation* diskOp = ALLOC(DiskOperation);
+    diskOp->requester = pcb;
+    diskOp->isWrite = 0;
+    diskOp->diskID = (long)SystemCallData->Argument[0];
+    diskOp->sector = (long)SystemCallData->Argument[1];
+    diskOp->buffer = (char*)SystemCallData->Argument[2];
+
+    INT32 temp;
+    MEM_WRITE(Z502DiskSetID, &diskOp->diskID);
+    MEM_READ(Z502DiskStatus, &temp);
+    if( temp == DEVICE_FREE )
+    {
+        gProcessManager->PushToDiskOperationWaitList(diskOp);
+
+        // Start disk read operation right now since disk is free.
+        MEM_WRITE(Z502DiskSetID, &diskOp->diskID);
+        MEM_WRITE(Z502DiskSetSector, &diskOp->sector);
+        MEM_WRITE(Z502DiskSetBuffer, (INT32*)diskOp->buffer);
+        MEM_WRITE(Z502DiskSetAction, &diskOp->isWrite);
+
+        temp = 0;
+        MEM_WRITE(Z502DiskStart, &temp);
+    }
+    else
+    {
+        // Disk is busy now. Put the requester to disk operation todo list.
+        gProcessManager->PushToDiskOperationToDoList(diskOp);
+        gProcessManager->PushToDiskOperationWaitList(diskOp);
+    }
+
+    gScheduler->OnProcessWait();
 }
 //****************************************************************************

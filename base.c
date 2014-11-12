@@ -69,6 +69,11 @@ void    interrupt_handler( void ) {
         IHTimerInterrupt();
         break;
 
+    case 5:
+    case 6:
+        IHDiskInterrupt();
+        break;
+
     default:
         break;
     }

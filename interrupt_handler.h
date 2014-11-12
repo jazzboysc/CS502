@@ -7,5 +7,6 @@
 #define INTERRUPT_HANDLER_H_
 
 void IHTimerInterrupt();
+void IHDiskInterrupt();
 
 #endif

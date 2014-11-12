@@ -43,6 +43,6 @@ extern UINT16 *Z502_PAGE_TBL_ADDR;
 extern INT16 Z502_PAGE_TBL_LENGTH;
 
 // Print out process queues and lists state.
-#define PRINT_STATE
+//#define PRINT_STATE
 
 #endif

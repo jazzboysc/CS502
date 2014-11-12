@@ -102,3 +102,30 @@ void IHTimerInterrupt()
     }
 }
 //****************************************************************************
+void IHDiskInterrupt()
+{
+    EnterCriticalSection(1);
+
+    // Previous disk operation has finished, put the requester to ready queue.
+    DiskOperation* diskOp;
+    gProcessManager->PopFromDiskOperationWaitList(&diskOp);
+    gProcessManager->PushToReadyQueue(diskOp->requester);
+    DEALLOC(diskOp);
+
+    // Start a new disk operation.
+    gProcessManager->PopFromDiskOperationToDoList(&diskOp);
+    if( diskOp != NULL )
+    {
+        INT32 temp;
+        MEM_WRITE(Z502DiskSetID, &diskOp->diskID);
+        MEM_WRITE(Z502DiskSetSector, &diskOp->sector);
+        MEM_WRITE(Z502DiskSetBuffer, (INT32*)diskOp->buffer);
+        MEM_WRITE(Z502DiskSetAction, &diskOp->isWrite);
+
+        temp = 0;
+        MEM_WRITE(Z502DiskStart, &temp);
+    }
+
+    LeaveCriticalSection(1);
+}
+//****************************************************************************

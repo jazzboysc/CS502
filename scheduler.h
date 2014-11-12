@@ -13,6 +13,7 @@ typedef void (*SchedulerOnRedispatch)();
 typedef void (*SchedulerOnProcessTerminate)();
 typedef void (*SchedulerOnProcessSleep)();
 typedef void (*SchedulerOnProcessSuspend)();
+typedef void (*SchedulerOnProcessWait)();
 typedef void (*SchedulerDispatch)();
 
 typedef struct Scheduler
@@ -21,6 +22,7 @@ typedef struct Scheduler
     SchedulerOnProcessTerminate OnProcessTerminate;
     SchedulerOnProcessSleep     OnProcessSleep;
     SchedulerOnProcessSuspend   OnProcessSuspend;
+    SchedulerOnProcessWait      OnProcessWait;
     SchedulerDispatch           Dispatch;
 
     PCB* schedulerPCB;

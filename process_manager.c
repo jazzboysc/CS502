@@ -603,7 +603,9 @@ void ProcessManagerInitialize()
     gProcessManager->PrintState = PrintState;
     gProcessManager->ResetReadyQueueKeys = ResetReadyQueueKeys;
     gProcessManager->PushToDiskOperationToDoList = PushToDiskOperationToDoList;
+    gProcessManager->PopFromDiskOperationToDoList = PopFromDiskOperationToDoList;
     gProcessManager->PushToDiskOperationWaitList = PushToDiskOperationWaitList;
+    gProcessManager->PopFromDiskOperationWaitList = PopFromDiskOperationWaitList;
 
     // Init OS global variables.
     gGlobalProcessList = (List*)ALLOC(List);
