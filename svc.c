@@ -11,6 +11,7 @@
 #include "scheduler.h"
 #include "critical_section.h"
 #include "disk_operation.h"
+#include "disk_manager.h"
 
 //****************************************************************************
 void SVCGetProcessID(SYSTEM_CALL_DATA* SystemCallData)
@@ -664,7 +665,7 @@ void SVCWriteDisk(SYSTEM_CALL_DATA* SystemCallData)
     MEM_READ(Z502DiskStatus, &temp);
     if( temp == DEVICE_FREE )
     {
-        gProcessManager->PushToDiskOperationWaitList(diskOp);
+        gDiskManager->PushToDiskOperationWaitList(diskOp);
 
         // Start disk write operation right now since disk is free.
         MEM_WRITE(Z502DiskSetID, &diskOp->diskID);
@@ -672,6 +673,7 @@ void SVCWriteDisk(SYSTEM_CALL_DATA* SystemCallData)
         MEM_WRITE(Z502DiskSetBuffer, (INT32*)diskOp->buffer);
         MEM_WRITE(Z502DiskSetAction, &diskOp->isWrite);
 
+        // Kick off disk operation.
         temp = 0;
         MEM_WRITE(Z502DiskStart, &temp);
 
@@ -681,8 +683,8 @@ void SVCWriteDisk(SYSTEM_CALL_DATA* SystemCallData)
     else
     {
         // Disk is busy now. Put the requester to disk operation todo list.
-        gProcessManager->PushToDiskOperationToDoList(diskOp);
-        gProcessManager->PushToDiskOperationWaitList(diskOp);
+        gDiskManager->PushToDiskOperationToDoList(diskOp);
+        gDiskManager->PushToDiskOperationWaitList(diskOp);
     }
 
     gScheduler->OnProcessWait();
@@ -706,7 +708,7 @@ void SVCReadDisk(SYSTEM_CALL_DATA* SystemCallData)
     MEM_READ(Z502DiskStatus, &temp);
     if( temp == DEVICE_FREE )
     {
-        gProcessManager->PushToDiskOperationWaitList(diskOp);
+        gDiskManager->PushToDiskOperationWaitList(diskOp);
 
         // Start disk read operation right now since disk is free.
         MEM_WRITE(Z502DiskSetID, &diskOp->diskID);
@@ -720,8 +722,8 @@ void SVCReadDisk(SYSTEM_CALL_DATA* SystemCallData)
     else
     {
         // Disk is busy now. Put the requester to disk operation todo list.
-        gProcessManager->PushToDiskOperationToDoList(diskOp);
-        gProcessManager->PushToDiskOperationWaitList(diskOp);
+        gDiskManager->PushToDiskOperationToDoList(diskOp);
+        gDiskManager->PushToDiskOperationWaitList(diskOp);
     }
 
     gScheduler->OnProcessWait();

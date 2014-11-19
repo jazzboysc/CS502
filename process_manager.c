@@ -12,8 +12,6 @@ MinPriQueue* gTimerQueue;
 MinPriQueue* gReadyQueue;
 List*        gSuspendedList;
 PCB*         gRunningProcess;
-List*        gDiskOperationToDoList;
-List*        gDiskOperationWaitList;
 
 ProcessManager* gProcessManager;
 
@@ -516,55 +514,6 @@ void ResetReadyQueueKeys()
     gReadyQueue = temp;
 }
 //****************************************************************************
-void PushToDiskOperationToDoList(DiskOperation* diskOp)
-{
-    ListNode* pcbNode = (ListNode*)ALLOC(ListNode);
-    pcbNode->data = (void*)diskOp;
-    ListAttach(gDiskOperationToDoList, pcbNode);
-}
-//****************************************************************************
-void PopFromDiskOperationToDoList(DiskOperation** diskOp)
-{
-    ListNode* head = gDiskOperationToDoList->head;
-    if( head == NULL )
-    {
-        // Nothing to pop.
-        *diskOp = NULL;
-        return;
-    }
-
-    gDiskOperationToDoList->head = gDiskOperationToDoList->head->next;
-    gDiskOperationToDoList->count--;
-
-    *diskOp = (DiskOperation*)head->data;
-    DEALLOC(head);
-}
-//****************************************************************************
-void PushToDiskOperationWaitList(DiskOperation* diskOp)
-{
-    ListNode* pcbNode = (ListNode*)ALLOC(ListNode);
-    pcbNode->data = (void*)diskOp;
-    ListAttach(gDiskOperationWaitList, pcbNode);
-    diskOp->requester->state = PROCESS_STATE_WAITING;
-}
-//****************************************************************************
-void PopFromDiskOperationWaitList(DiskOperation** diskOp)
-{
-    ListNode* head = gDiskOperationWaitList->head;
-    if( head == NULL )
-    {
-        // Nothing to pop.
-        *diskOp = NULL;
-        return;
-    }
-
-    gDiskOperationWaitList->head = gDiskOperationWaitList->head->next;
-    gDiskOperationWaitList->count--;
-
-    *diskOp = (DiskOperation*)head->data;
-    DEALLOC(head);
-}
-//****************************************************************************
 
 //****************************************************************************
 void ProcessManagerInitialize()
@@ -602,10 +551,6 @@ void ProcessManagerInitialize()
     gProcessManager->GetFirstMessage = GetFirstMessage;
     gProcessManager->PrintState = PrintState;
     gProcessManager->ResetReadyQueueKeys = ResetReadyQueueKeys;
-    gProcessManager->PushToDiskOperationToDoList = PushToDiskOperationToDoList;
-    gProcessManager->PopFromDiskOperationToDoList = PopFromDiskOperationToDoList;
-    gProcessManager->PushToDiskOperationWaitList = PushToDiskOperationWaitList;
-    gProcessManager->PopFromDiskOperationWaitList = PopFromDiskOperationWaitList;
 
     // Init OS global variables.
     gGlobalProcessList = (List*)ALLOC(List);
@@ -615,8 +560,6 @@ void ProcessManagerInitialize()
     MinPriQueueInit(gReadyQueue, MAX_PROCESS_NUM);
     gSuspendedList = (List*)ALLOC(List);
     gRunningProcess = NULL;
-    gDiskOperationToDoList = (List*)ALLOC(List);
-    gDiskOperationWaitList = (List*)ALLOC(List);
 }
 //****************************************************************************
 void ProcessManagerTerminate()

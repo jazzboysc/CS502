@@ -8,6 +8,7 @@
 #include "scheduler.h"
 #include "os_common.h"
 #include "critical_section.h"
+#include "disk_manager.h"
 
 //****************************************************************************
 void OnProcessWake(PCB* pcb)
@@ -102,18 +103,21 @@ void IHTimerInterrupt()
     }
 }
 //****************************************************************************
-void IHDiskInterrupt()
+void IHDiskInterrupt(int deviceID)
 {
     EnterCriticalSection(1);
 
+    // Figure out which disk is generating the interrupt.
+    int diskID = deviceID - 4;
+
     // Previous disk operation has finished, put the requester to ready queue.
     DiskOperation* diskOp;
-    gProcessManager->PopFromDiskOperationWaitList(&diskOp);
+    gDiskManager->PopFromDiskOperationWaitList(diskID, &diskOp);
     gProcessManager->PushToReadyQueue(diskOp->requester);
     DEALLOC(diskOp);
 
     // Start a new disk operation.
-    gProcessManager->PopFromDiskOperationToDoList(&diskOp);
+    gDiskManager->PopFromDiskOperationToDoList(diskID, &diskOp);
     if( diskOp != NULL )
     {
         INT32 temp;

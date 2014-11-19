@@ -74,6 +74,9 @@
     <ClInclude Include="disk_operation.h">
       <Filter>Util</Filter>
     </ClInclude>
+    <ClInclude Include="disk_manager.h">
+      <Filter>Modules</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="sample.c">
@@ -122,6 +125,9 @@
       <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="memory_manager.c">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="disk_manager.c">
       <Filter>Modules</Filter>
     </ClCompile>
   </ItemGroup>

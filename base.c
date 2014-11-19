@@ -35,6 +35,7 @@
 #include "interrupt_handler.h"
 #include "fault_handler.h"
 #include "critical_section.h"
+#include "disk_manager.h"
 
 extern void          *TO_VECTOR [];
 
@@ -71,7 +72,7 @@ void    interrupt_handler( void ) {
 
     case 5:
     case 6:
-        IHDiskInterrupt();
+        IHDiskInterrupt(device_id);
         break;
 
     default:
@@ -294,10 +295,11 @@ void    osInit( int argc, char *argv[]  ) {
         }
     }
 
-    // Initialize process manager, scheduler and memory manager.
+    // Initialize global managers.
     ProcessManagerInitialize();
     SchedulerInitialize();
     MemoryManagerInitialize();
+    DiskManagerInitialize();
 
     // Create main user process.
     PCB* pcb = gProcessManager->CreateProcess(entryName, 1, tests[entry], 20, 0, 0);

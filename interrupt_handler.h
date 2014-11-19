@@ -7,6 +7,6 @@
 #define INTERRUPT_HANDLER_H_
 
 void IHTimerInterrupt();
-void IHDiskInterrupt();
+void IHDiskInterrupt(int deviceID);
 
 #endif
