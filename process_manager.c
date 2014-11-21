@@ -208,6 +208,7 @@ PCB* CreateProcess(char* name, int type, ProcessEntry entry, int priority,
     pcb->name[len] = 0;
     pcb->processID = ++gCurrentProcessID;
     pcb->messages = (List*)ALLOC(List);
+    pcb->trackTable = calloc(VIRTUAL_MEM_PAGES, sizeof(TrackTableItem));
 
     // Return process id to the caller.
     if( dstID )

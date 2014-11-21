@@ -69,6 +69,7 @@
     <ClInclude Include="critical_section.h" />
     <ClInclude Include="disk_manager.h" />
     <ClInclude Include="disk_operation.h" />
+    <ClInclude Include="disk_sector_info.h" />
     <ClInclude Include="fault_handler.h" />
     <ClInclude Include="global.h" />
     <ClInclude Include="heap.h" />

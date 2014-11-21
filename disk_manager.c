@@ -5,9 +5,11 @@
 
 #include "disk_manager.h"
 #include "os_common.h"
+#include "disk_sector_info.h"
 
 List* gDiskOperationToDoList[MAX_NUMBER_OF_DISKS];
 List* gDiskOperationWaitList[MAX_NUMBER_OF_DISKS];
+DiskSectorInfo* gDiskStateTable[MAX_NUMBER_OF_DISKS];
 
 DiskManager* gDiskManager;
 
@@ -39,10 +41,16 @@ void PopFromDiskOperationToDoList(int diskID, DiskOperation** diskOp)
 //****************************************************************************
 void PushToDiskOperationWaitList(DiskOperation* diskOp)
 {
+    // The process will wait for disk operation.
     ListNode* pcbNode = (ListNode*)ALLOC(ListNode);
     pcbNode->data = (void*)diskOp;
     ListAttach(gDiskOperationWaitList[diskOp->diskID - 1], pcbNode);
     diskOp->requester->state = PROCESS_STATE_WAITING;
+
+    // Track disk usage. Set this sector of the disk is used.
+    gDiskStateTable[diskOp->diskID - 1][diskOp->sector].user =
+        diskOp->requester;
+    gDiskStateTable[diskOp->diskID - 1][diskOp->sector].usage = DISK_STORE;
 }
 //****************************************************************************
 void PopFromDiskOperationWaitList(int diskID, DiskOperation** diskOp)
@@ -80,6 +88,7 @@ void DiskManagerInitialize()
     {
         gDiskOperationToDoList[i] = (List*)ALLOC(List);
         gDiskOperationWaitList[i] = (List*)ALLOC(List);
+        gDiskStateTable[i] = calloc(NUM_LOGICAL_SECTORS, sizeof(DiskSectorInfo));
     }
 }
 //****************************************************************************

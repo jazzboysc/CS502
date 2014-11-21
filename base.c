@@ -70,14 +70,14 @@ void    interrupt_handler( void ) {
         IHTimerInterrupt();
         break;
 
-    case 5:
-    case 6:
-    case 7:
-    case 8:
-    case 9:
-    case 10:
-    case 11:
-    case 12:
+    case 5:  // disk 1
+    case 6:  // disk 2
+    case 7:  // disk 3
+    case 8:  // disk 4
+    case 9:  // disk 5
+    case 10: // disk 6
+    case 11: // disk 7
+    case 12: // disk 8
         IHDiskInterrupt(device_id);
         break;
 

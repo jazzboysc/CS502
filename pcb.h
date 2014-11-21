@@ -17,6 +17,13 @@
 #define PROCESS_TYPE_SCHEDULER 0
 #define PROCESS_TYPE_USER      1
 
+typedef struct _TrackTableItem
+{
+    int swappedOut;
+    int diskID;
+    int sector;
+} TrackTableItem;
+
 // Process control block.
 typedef void(*ProcessEntry)(void);
 typedef struct _PCB
@@ -33,6 +40,8 @@ typedef struct _PCB
 
     // Each process has a message list that is used to recieve messages.
     List*         messages;
+
+    TrackTableItem*    trackTable;
 
 } PCB;
 

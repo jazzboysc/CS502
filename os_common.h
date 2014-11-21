@@ -39,6 +39,10 @@
 #define ERR_DST_BUFFER_TOO_SMALL            46L
 #define ERR_REACH_MAX_MSG_COUNT             47L
 
+// Disk usage.
+#define DISK_STORE 0
+#define DISK_CACHE 1
+
 extern UINT16 *Z502_PAGE_TBL_ADDR;
 extern INT16 Z502_PAGE_TBL_LENGTH;
 
