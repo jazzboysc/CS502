@@ -23,12 +23,12 @@ PhysicalPageStatus gPhysicalPageStatusTable[PHYS_MEM_PGS];
 //****************************************************************************
 UINT16 MapPhysicalMemory(INT32 virtualPageNumber)
 {
-    //EnterCriticalSection(1);
+    EnterCriticalSection(1);
 
     // Check if we got a memory access crossing the boundary.
     if( virtualPageNumber >= VIRTUAL_MEM_PAGES )
     {
-        //LeaveCriticalSection(1);
+        LeaveCriticalSection(1);
         Z502Halt();
     }
 
@@ -52,34 +52,34 @@ UINT16 MapPhysicalMemory(INT32 virtualPageNumber)
         }
     }
 
-    //if( i == PHYS_MEM_PGS )
-    //{
-    //    // No free physical page is available.
+    if( i == PHYS_MEM_PGS )
+    {
+        // No free physical page is available.
 
-    //    // Choose a victim.
-    //    //i = 0;
+        // Choose a victim.
+        i = 0;
 
-    //    // Swap out data of the victim process.
-    //    //INT32 diskID, sector;
-    //    //gMemoryManager->SwapOut(i, gPhysicalPageStatusTable[i].user,
-    //    //    &diskID, &sector);
+        // Swap out data of the victim process.
+        INT32 diskID, sector;
+        gMemoryManager->SwapOut(i, gPhysicalPageStatusTable[i].user,
+            &diskID, &sector);
 
-    //    //// Check if we need to swap in data for the current process.
-    //    //PCB* pcb = gProcessManager->GetRunningProcess();
-    //    //if( pcb->trackTable[virtualPageNumber].swappedOut )
-    //    //{
-    //    //    // Swap in data of the running process.
-    //    //    gMemoryManager->SwapIn(i, pcb,
-    //    //        pcb->trackTable[virtualPageNumber].diskID,
-    //    //        pcb->trackTable[virtualPageNumber].sector);
-    //    }
-    //}
+        // Check if we need to swap in data for the current process.
+        PCB* pcb = gProcessManager->GetRunningProcess();
+        if( pcb->trackTable[virtualPageNumber].swappedOut )
+        {
+            // Swap in data of the running process.
+            gMemoryManager->SwapIn(i, pcb,
+                pcb->trackTable[virtualPageNumber].diskID,
+                pcb->trackTable[virtualPageNumber].sector);
+        }
+    }
     gPhysicalPageStatusTable[i].used = 1;
     gPhysicalPageStatusTable[i].user = gProcessManager->GetRunningProcess();
 
     Z502_PAGE_TBL_ADDR[virtualPageNumber] = i | (UINT16)PTBL_VALID_BIT;
 
-    //LeaveCriticalSection(1);
+    LeaveCriticalSection(1);
     return i;
 }
 //****************************************************************************
