@@ -186,6 +186,7 @@ void SwapIn(INT32 physicalPageNumber, PCB* user, INT32 srcDiskID,
     }
 
     Z502WritePhysicalMemory(physicalPageNumber, tempBuffer);
+    gDiskManager->FreeDiskCache(srcDiskID, srcSector);
 }
 //****************************************************************************
 

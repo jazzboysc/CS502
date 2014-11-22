@@ -45,12 +45,24 @@ void PushToDiskOperationWaitList(DiskOperation* diskOp)
     ListNode* pcbNode = (ListNode*)ALLOC(ListNode);
     pcbNode->data = (void*)diskOp;
     ListAttach(gDiskOperationWaitList[diskOp->diskID - 1], pcbNode);
-    diskOp->requester->state = PROCESS_STATE_WAITING;
+    if( diskOp->operation == DISK_OP_READ ||
+        diskOp->operation == DISK_OP_WRITE )
+    {
+        diskOp->requester->state = PROCESS_STATE_WAITING;
+    }
 
     // Track disk usage. Set this sector of the disk is used.
     gDiskStateTable[diskOp->diskID - 1][diskOp->sector].user =
         diskOp->requester;
-    gDiskStateTable[diskOp->diskID - 1][diskOp->sector].usage = DISK_STORE;
+    if( diskOp->operation == DISK_OP_READ ||
+        diskOp->operation == DISK_OP_WRITE )
+    {
+        gDiskStateTable[diskOp->diskID - 1][diskOp->sector].usage = DISK_STORE;
+    }
+    else
+    {
+        gDiskStateTable[diskOp->diskID - 1][diskOp->sector].usage = DISK_CACHE;
+    }
 }
 //****************************************************************************
 void PopFromDiskOperationWaitList(int diskID, DiskOperation** diskOp)
@@ -77,6 +89,7 @@ void GetDiskCache(PCB* user, int* diskID, int* sector)
     int i;
     for( i = 0; i < NUM_LOGICAL_SECTORS; ++i )
     {
+        // Find a free disk space.
         if( gDiskStateTable[*diskID - 1][i].user == 0 )
         {
             gDiskStateTable[*diskID - 1][i].user = user;
@@ -86,6 +99,11 @@ void GetDiskCache(PCB* user, int* diskID, int* sector)
     }
     assert( i < NUM_LOGICAL_SECTORS );
     *sector = i;
+}
+//****************************************************************************
+void FreeDiskCache(int diskID, int sector)
+{
+    gDiskStateTable[diskID - 1][sector].user = 0;
 }
 //****************************************************************************
 
@@ -99,6 +117,7 @@ void DiskManagerInitialize()
     gDiskManager->PushToDiskOperationWaitList = PushToDiskOperationWaitList;
     gDiskManager->PopFromDiskOperationWaitList = PopFromDiskOperationWaitList;
     gDiskManager->GetDiskCache = GetDiskCache;
+    gDiskManager->FreeDiskCache = FreeDiskCache;
 
     // Init OS global variables.
     int i;

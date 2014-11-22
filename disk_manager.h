@@ -14,6 +14,7 @@ typedef void (*DiskManagerPopFromDiskOperationToDoList)(int diskID, DiskOperatio
 typedef void (*DiskManagerPushToDiskOperationWaitList)(DiskOperation* diskOp);
 typedef void (*DiskManagerPopFromDiskOperationWaitList)(int diskID, DiskOperation** diskOp);
 typedef void (*DiskManagerGetDiskCache)(PCB* user, int* diskID, int* sector);
+typedef void (*DiskManagerFreeDiskCache)(int diskID, int sector);
 
 // Disk manager is a global singleton object used to manage disk operation
 // of Z502 machine.
@@ -25,6 +26,7 @@ typedef struct DiskManager
     DiskManagerPushToDiskOperationWaitList  PushToDiskOperationWaitList;
     DiskManagerPopFromDiskOperationWaitList PopFromDiskOperationWaitList;
     DiskManagerGetDiskCache                 GetDiskCache;
+    DiskManagerFreeDiskCache                FreeDiskCache;
 
 } DiskManager;
 
