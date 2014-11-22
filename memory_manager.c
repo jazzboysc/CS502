@@ -61,7 +61,7 @@ UINT16 MapPhysicalMemory(INT32 virtualPageNumber)
         // Choose a victim.
         i = 0;
 
-        // Swap out data of the victim process.
+        // Swap out data for the victim process.
         INT32 diskID, sector;
         gMemoryManager->SwapOut(i, gPhysicalPageStatusTable[i].user,
             &diskID, &sector);
@@ -70,10 +70,12 @@ UINT16 MapPhysicalMemory(INT32 virtualPageNumber)
         PCB* pcb = gProcessManager->GetRunningProcess();
         if( pcb->trackTable[virtualPageNumber].swappedOut )
         {
-            // Swap in data of the running process.
+            // Swap in data for the running process.
             gMemoryManager->SwapIn(i, pcb,
                 pcb->trackTable[virtualPageNumber].diskID,
                 pcb->trackTable[virtualPageNumber].sector);
+
+            pcb->trackTable[virtualPageNumber].swappedOut = 0;
         }
     }
     gPhysicalPageStatusTable[i].used = 1;
@@ -146,7 +148,44 @@ void SwapOut(INT32 physicalPageNumber, PCB* user, INT32* dstDiskID,
 void SwapIn(INT32 physicalPageNumber, PCB* user, INT32 srcDiskID, 
     INT32 srcSector)
 {
+    char tempBuffer[PGSIZE];
 
+    DiskOperation* diskOp = ALLOC(DiskOperation);
+    diskOp->requester = user;
+    diskOp->operation = DISK_OP_READ_CACHE;
+    diskOp->diskID = srcDiskID;
+    diskOp->sector = srcSector;
+    diskOp->buffer = tempBuffer;
+    gDiskManager->PushToDiskOperationWaitList(diskOp);
+
+    // Wait untill disk is free.
+    INT32 temp;
+    MEM_WRITE(Z502DiskSetID, &srcDiskID);
+    MEM_READ(Z502DiskStatus, &temp);
+    while( temp != DEVICE_FREE )
+    {
+        Z502Idle();
+        MEM_READ(Z502DiskStatus, &temp);
+    }
+
+    // Read data.
+    MEM_WRITE(Z502DiskSetID, &srcDiskID);
+    MEM_WRITE(Z502DiskSetSector, &srcSector);
+    MEM_WRITE(Z502DiskSetBuffer, (INT32 *)tempBuffer);
+    temp = 0;
+    MEM_WRITE(Z502DiskSetAction, &temp);
+    temp = 0;
+    MEM_WRITE(Z502DiskStart, &temp);
+
+    MEM_WRITE(Z502DiskSetID, &srcDiskID);
+    MEM_READ(Z502DiskStatus, &temp);
+    while( temp != DEVICE_FREE )
+    {
+        Z502Idle();
+        MEM_READ(Z502DiskStatus, &temp);
+    }
+
+    Z502WritePhysicalMemory(physicalPageNumber, tempBuffer);
 }
 //****************************************************************************
 

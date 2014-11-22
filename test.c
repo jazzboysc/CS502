@@ -1575,12 +1575,12 @@ void test2e(void) {
 
     for (Iteration = 0; Iteration < VIRTUAL_MEM_PAGES; Iteration += STEP_SIZE) {
 
-        if ( Iteration % 2 )
-            MixItUp = Iteration;
-        else
-            MixItUp = VIRTUAL_MEM_PAGES - Iteration;
-        Z502_REG3 = PGSIZE * MixItUp;         // Generate address
-        Z502_REG1 = DataWritten[MixItUp];     // Get what we wrote
+        //if ( Iteration % 2 )
+        //    MixItUp = Iteration;
+        //else
+        //    MixItUp = VIRTUAL_MEM_PAGES - Iteration;
+        Z502_REG3 = PGSIZE * Iteration;       // Generate address
+        Z502_REG1 = DataWritten[Iteration];   // Get what we wrote
         MEM_READ(Z502_REG3, &Z502_REG2);      // Read back data
 
         if (Iteration % DISPLAY_GRANULARITY2e == 0)
