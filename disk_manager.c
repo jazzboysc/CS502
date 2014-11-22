@@ -71,6 +71,23 @@ void PopFromDiskOperationWaitList(int diskID, DiskOperation** diskOp)
     DEALLOC(head);
 }
 //****************************************************************************
+void GetDiskCache(PCB* user, int* diskID, int* sector)
+{
+    *diskID = user->processID;
+    int i;
+    for( i = 0; i < NUM_LOGICAL_SECTORS; ++i )
+    {
+        if( gDiskStateTable[*diskID - 1][i].user == 0 )
+        {
+            gDiskStateTable[*diskID - 1][i].user = user;
+            gDiskStateTable[*diskID - 1][i].usage = DISK_CACHE;
+            break;
+        }
+    }
+    assert( i < NUM_LOGICAL_SECTORS );
+    *sector = i;
+}
+//****************************************************************************
 
 //****************************************************************************
 void DiskManagerInitialize()
@@ -81,6 +98,7 @@ void DiskManagerInitialize()
     gDiskManager->PopFromDiskOperationToDoList = PopFromDiskOperationToDoList;
     gDiskManager->PushToDiskOperationWaitList = PushToDiskOperationWaitList;
     gDiskManager->PopFromDiskOperationWaitList = PopFromDiskOperationWaitList;
+    gDiskManager->GetDiskCache = GetDiskCache;
 
     // Init OS global variables.
     int i;

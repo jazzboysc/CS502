@@ -9,20 +9,22 @@
 #include "pcb.h"
 #include "disk_operation.h"
 
-typedef void(*ProcessManagerPushToDiskOperationToDoList)(DiskOperation* diskOp);
-typedef void(*ProcessManagerPopFromDiskOperationToDoList)(int diskID, DiskOperation** diskOp);
-typedef void(*ProcessManagerPushToDiskOperationWaitList)(DiskOperation* diskOp);
-typedef void(*ProcessManagerPopFromDiskOperationWaitList)(int diskID, DiskOperation** diskOp);
+typedef void (*DiskManagerPushToDiskOperationToDoList)(DiskOperation* diskOp);
+typedef void (*DiskManagerPopFromDiskOperationToDoList)(int diskID, DiskOperation** diskOp);
+typedef void (*DiskManagerPushToDiskOperationWaitList)(DiskOperation* diskOp);
+typedef void (*DiskManagerPopFromDiskOperationWaitList)(int diskID, DiskOperation** diskOp);
+typedef void (*DiskManagerGetDiskCache)(PCB* user, int* diskID, int* sector);
 
 // Disk manager is a global singleton object used to manage disk operation
 // of Z502 machine.
 typedef struct DiskManager
 {
     // Disk operation interfaces.
-    ProcessManagerPushToDiskOperationToDoList  PushToDiskOperationToDoList;
-    ProcessManagerPopFromDiskOperationToDoList PopFromDiskOperationToDoList;
-    ProcessManagerPushToDiskOperationWaitList  PushToDiskOperationWaitList;
-    ProcessManagerPopFromDiskOperationWaitList PopFromDiskOperationWaitList;
+    DiskManagerPushToDiskOperationToDoList  PushToDiskOperationToDoList;
+    DiskManagerPopFromDiskOperationToDoList PopFromDiskOperationToDoList;
+    DiskManagerPushToDiskOperationWaitList  PushToDiskOperationWaitList;
+    DiskManagerPopFromDiskOperationWaitList PopFromDiskOperationWaitList;
+    DiskManagerGetDiskCache                 GetDiskCache;
 
 } DiskManager;
 

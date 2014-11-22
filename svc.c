@@ -655,7 +655,7 @@ void SVCWriteDisk(SYSTEM_CALL_DATA* SystemCallData)
     PCB* pcb = gProcessManager->GetRunningProcess();
     DiskOperation* diskOp = ALLOC(DiskOperation);
     diskOp->requester = pcb;
-    diskOp->isWrite = 1;
+    diskOp->operation = DISK_OP_WRITE;
     diskOp->diskID = (long)SystemCallData->Argument[0];
     diskOp->sector = (long)SystemCallData->Argument[1];
     diskOp->buffer = (char*)SystemCallData->Argument[2];
@@ -671,7 +671,7 @@ void SVCWriteDisk(SYSTEM_CALL_DATA* SystemCallData)
         MEM_WRITE(Z502DiskSetID, &diskOp->diskID);
         MEM_WRITE(Z502DiskSetSector, &diskOp->sector);
         MEM_WRITE(Z502DiskSetBuffer, (INT32*)diskOp->buffer);
-        MEM_WRITE(Z502DiskSetAction, &diskOp->isWrite);
+        MEM_WRITE(Z502DiskSetAction, &diskOp->operation);
 
         // Kick off disk operation.
         temp = 0;
@@ -698,7 +698,7 @@ void SVCReadDisk(SYSTEM_CALL_DATA* SystemCallData)
     PCB* pcb = gProcessManager->GetRunningProcess();
     DiskOperation* diskOp = ALLOC(DiskOperation);
     diskOp->requester = pcb;
-    diskOp->isWrite = 0;
+    diskOp->operation = DISK_OP_READ;
     diskOp->diskID = (long)SystemCallData->Argument[0];
     diskOp->sector = (long)SystemCallData->Argument[1];
     diskOp->buffer = (char*)SystemCallData->Argument[2];
@@ -714,7 +714,7 @@ void SVCReadDisk(SYSTEM_CALL_DATA* SystemCallData)
         MEM_WRITE(Z502DiskSetID, &diskOp->diskID);
         MEM_WRITE(Z502DiskSetSector, &diskOp->sector);
         MEM_WRITE(Z502DiskSetBuffer, (INT32*)diskOp->buffer);
-        MEM_WRITE(Z502DiskSetAction, &diskOp->isWrite);
+        MEM_WRITE(Z502DiskSetAction, &diskOp->operation);
 
         temp = 0;
         MEM_WRITE(Z502DiskStart, &temp);

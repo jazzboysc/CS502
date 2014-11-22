@@ -113,6 +113,13 @@ void IHDiskInterrupt(int deviceID)
     // Previous disk operation has finished, put the requester to ready queue.
     DiskOperation* diskOp;
     gDiskManager->PopFromDiskOperationWaitList(diskID, &diskOp);
+    if( diskOp->operation == DISK_OP_READ_CACHE ||
+        diskOp->operation == DISK_OP_WRITE_CACHE )
+    {
+        DEALLOC(diskOp);
+        LeaveCriticalSection(1);
+        return;
+    }
     gProcessManager->PushToReadyQueue(diskOp->requester);
     DEALLOC(diskOp);
 
@@ -124,7 +131,7 @@ void IHDiskInterrupt(int deviceID)
         MEM_WRITE(Z502DiskSetID, &diskOp->diskID);
         MEM_WRITE(Z502DiskSetSector, &diskOp->sector);
         MEM_WRITE(Z502DiskSetBuffer, (INT32*)diskOp->buffer);
-        MEM_WRITE(Z502DiskSetAction, &diskOp->isWrite);
+        MEM_WRITE(Z502DiskSetAction, &diskOp->operation);
 
         temp = 0;
         MEM_WRITE(Z502DiskStart, &temp);

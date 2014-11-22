@@ -6,6 +6,7 @@
 #include "memory_manager.h"
 #include "process_manager.h"
 #include "critical_section.h"
+#include "disk_manager.h"
 
 MemoryManager* gMemoryManager;
 
@@ -39,6 +40,7 @@ UINT16 MapPhysicalMemory(INT32 virtualPageNumber)
         Z502_PAGE_TBL_LENGTH = VIRTUAL_MEM_PAGES;
         Z502_PAGE_TBL_ADDR = (UINT16 *)calloc(Z502_PAGE_TBL_LENGTH,
             sizeof(UINT16));
+        gProcessManager->GetRunningProcess()->virtualPageTable = Z502_PAGE_TBL_ADDR;
     }
 
     // Try to find a free physical page first.
@@ -76,6 +78,7 @@ UINT16 MapPhysicalMemory(INT32 virtualPageNumber)
     }
     gPhysicalPageStatusTable[i].used = 1;
     gPhysicalPageStatusTable[i].user = gProcessManager->GetRunningProcess();
+    gPhysicalPageStatusTable[i].virtualPageNumber = virtualPageNumber;
 
     Z502_PAGE_TBL_ADDR[virtualPageNumber] = i | (UINT16)PTBL_VALID_BIT;
 
@@ -86,7 +89,58 @@ UINT16 MapPhysicalMemory(INT32 virtualPageNumber)
 void SwapOut(INT32 physicalPageNumber, PCB* user, INT32* dstDiskID, 
     INT32* dstSector)
 {
+    // Notify the previous user of the physical page that the page is no more
+    // valid. Since we have to swap it out to save space for a new user.
+    UINT16* virtualPageTable = user->virtualPageTable;
+    INT32 vpn = gPhysicalPageStatusTable[physicalPageNumber].virtualPageNumber;
+    virtualPageTable[vpn] &= (UINT16)0x7FFF;
 
+    // Get data from physical memory.
+    char tempBuffer[PGSIZE];
+    Z502ReadPhysicalMemory(physicalPageNumber, tempBuffer);
+
+    // Now swap out data for the old user.
+
+    // Find a disk cache.
+    gDiskManager->GetDiskCache(user, dstDiskID, dstSector);
+    user->trackTable[vpn].diskID = *dstDiskID;
+    user->trackTable[vpn].sector = *dstSector;
+    user->trackTable[vpn].swappedOut = 1;
+
+    // Wait untill disk is free.
+    INT32 temp;
+    MEM_WRITE(Z502DiskSetID, dstDiskID);
+    MEM_READ(Z502DiskStatus, &temp);
+    while( temp != DEVICE_FREE )
+    {
+        Z502Idle();
+        MEM_READ(Z502DiskStatus, &temp);
+    }
+
+    DiskOperation* diskOp = ALLOC(DiskOperation);
+    diskOp->requester = user;
+    diskOp->operation = DISK_OP_WRITE_CACHE;
+    diskOp->diskID = *dstDiskID;
+    diskOp->sector = *dstSector;
+    diskOp->buffer = tempBuffer;
+    gDiskManager->PushToDiskOperationWaitList(diskOp);
+
+    // Write data.
+    MEM_WRITE(Z502DiskSetID, dstDiskID);
+    MEM_WRITE(Z502DiskSetSector, dstSector);
+    MEM_WRITE(Z502DiskSetBuffer, (INT32 *)tempBuffer);
+    temp = 1;
+    MEM_WRITE(Z502DiskSetAction, &temp);
+    temp = 0;
+    MEM_WRITE(Z502DiskStart, &temp);
+
+    MEM_WRITE(Z502DiskSetID, dstDiskID);
+    MEM_READ(Z502DiskStatus, &temp);
+    while( temp != DEVICE_FREE )
+    {
+        Z502Idle();
+        MEM_READ(Z502DiskStatus, &temp);
+    }
 }
 //****************************************************************************
 void SwapIn(INT32 physicalPageNumber, PCB* user, INT32 srcDiskID, 
@@ -111,6 +165,7 @@ void MemoryManagerInitialize()
     {
         gPhysicalPageStatusTable[i].used = 0;
         gPhysicalPageStatusTable[i].user = 0;
+        gPhysicalPageStatusTable[i].virtualPageNumber = -1;
     }
 }
 //****************************************************************************

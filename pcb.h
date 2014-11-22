@@ -41,6 +41,7 @@ typedef struct _PCB
     // Each process has a message list that is used to recieve messages.
     List*         messages;
 
+    void*         virtualPageTable;
     TrackTableItem*    trackTable;
 
 } PCB;
