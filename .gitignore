@@ -46,3 +46,5 @@ Icon
 *.idb
 *.opensdf
 *.xcuserstate
+
+*.user
