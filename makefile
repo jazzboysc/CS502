@@ -6,9 +6,12 @@ LDFLAGS = -Wno-write-strings \
 
 SOURCES = base.c \
           critical_section.c \
+          disk_manager.c \
+          fault_handler.c \
           heap.c \
           interrupt_handler.c \
           list.c \
+          memory_manager.c \
           priority_queue.c \
           process_manager.c \
           sample.c \

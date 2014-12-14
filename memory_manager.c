@@ -44,8 +44,8 @@ UINT16 MapPhysicalMemory(INT32 virtualPageNumber)
     }
 
     // Try to find a free physical page first.
-    UINT16 i;
-    for( i = 0; i < (UINT16)PHYS_MEM_PGS; ++i )
+    long i;
+    for( i = 0; i < (long)PHYS_MEM_PGS; ++i )
     {
         if( gPhysicalPageStatusTable[i].used == 0 )
         {
@@ -60,6 +60,7 @@ UINT16 MapPhysicalMemory(INT32 virtualPageNumber)
 
         // Choose a victim.
         i = 0;
+        GetSkewedRandomNumber(&i, PHYS_MEM_PGS - 1);
 
         // Swap out data for the victim process.
         INT32 diskID, sector;
@@ -95,10 +96,10 @@ UINT16 MapPhysicalMemory(INT32 virtualPageNumber)
     MP_print_line();
 #endif
 
-    Z502_PAGE_TBL_ADDR[virtualPageNumber] = i | (UINT16)PTBL_VALID_BIT;
+    Z502_PAGE_TBL_ADDR[virtualPageNumber] = (UINT16)i | (UINT16)PTBL_VALID_BIT;
 
     LeaveCriticalSection(1);
-    return i;
+    return (UINT16)i;
 }
 //****************************************************************************
 void SwapOut(INT32 physicalPageNumber, PCB* user, INT32* dstDiskID, 
