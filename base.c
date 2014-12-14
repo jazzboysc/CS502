@@ -106,8 +106,8 @@ void    fault_handler( void )
     // Now read the status of this device
     MEM_READ(Z502InterruptStatus, &status );
 
-    printf( "Fault_handler: Found vector type %d with value %d\n",
-                        device_id, status );
+    //printf( "Fault_handler: Found vector type %d with value %d\n",
+    //                    device_id, status );
 
     switch( device_id )
     {

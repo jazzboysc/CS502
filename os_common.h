@@ -40,13 +40,17 @@
 #define ERR_REACH_MAX_MSG_COUNT             47L
 
 // Disk usage.
-#define DISK_STORE 0
-#define DISK_CACHE 1
+#define DISK_UNUSED 0
+#define DISK_STORE  1
+#define DISK_CACHE  2
 
 extern UINT16 *Z502_PAGE_TBL_ADDR;
 extern INT16 Z502_PAGE_TBL_LENGTH;
 
 // Print out process queues and lists state.
 //#define PRINT_STATE
+
+// Print out physical memory state.
+#define PRINT_MEMORY_STATE
 
 #endif

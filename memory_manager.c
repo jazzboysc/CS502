@@ -82,6 +82,19 @@ UINT16 MapPhysicalMemory(INT32 virtualPageNumber)
     gPhysicalPageStatusTable[i].user = gProcessManager->GetRunningProcess();
     gPhysicalPageStatusTable[i].virtualPageNumber = virtualPageNumber;
 
+#ifdef PRINT_MEMORY_STATE
+    int j;
+    for( j = 0; j < PHYS_MEM_PGS; ++j )
+    {
+        if( gPhysicalPageStatusTable[j].used )
+        {
+            MP_setup(j, gPhysicalPageStatusTable[j].user->processID,
+                gPhysicalPageStatusTable[j].virtualPageNumber, 1);
+        }
+    }
+    MP_print_line();
+#endif
+
     Z502_PAGE_TBL_ADDR[virtualPageNumber] = i | (UINT16)PTBL_VALID_BIT;
 
     LeaveCriticalSection(1);
